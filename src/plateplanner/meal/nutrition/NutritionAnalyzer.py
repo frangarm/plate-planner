@@ -51,4 +51,21 @@ class NutritionAnalyzer:
     """
     def analyze_nutrition(self, nutrition_totals: dict, reference_targets: dict) -> dict:
         
-        raise NotImplementedError
+        results = {}
+
+        for nutrient, total in nutrition_totals.items():
+            if nutrient not in reference_targets:
+                continue
+
+            target = reference_targets[nutrient]
+            if target < 0:
+                raise ValueError(f"Target for {nutrient} must be non-negative")
+
+            if total < target:
+                results[nutrient] = STATUS_DEFICIT
+            elif total > target:
+                results[nutrient] = STATUS_EXCESS
+            else:
+                results[nutrient] = STATUS_WITHIN_TARGET
+
+        return results
