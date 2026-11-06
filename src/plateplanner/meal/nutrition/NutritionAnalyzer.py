@@ -77,7 +77,7 @@ class NutritionAnalyzer:
     """
     def check_nutrition_data(self, nutritionData: dict) -> bool: 
         if not isinstance(nutritionData, dict):
-            raise TypeError("nutrition_data must be a dict")
+            raise TypeError("nutritionData must be a dict")
         return all(self.has_required_nutrients(nutrition) for nutrition in nutritionData.values())
     
     """
