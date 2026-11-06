@@ -13,7 +13,7 @@ def test_deficit(analyzer):
 
 def test_excess(analyzer):
     result = analyzer.analyze_nutrition({"sodium": 3000}, {"sodium": 2300})
-    assert result["sodiium"] == na.STATUS_EXCESS
+    assert result["sodium"] == na.STATUS_EXCESS
 
 def test_within_target(analyzer):
     result = analyzer.analyze_nutrition({"fiber": 25}, {"fiber": 25})
@@ -38,7 +38,7 @@ def test_zero_to_zero(analyzer):
 
 def test_zero_with_positive(analyzer):
     result = analyzer.analyze_nutrition({"sugar": 1}, {"sugar": 0})
-    assert result["sugar"] == na.STATUS_DEFICIT
+    assert result["sugar"] == na.STATUS_EXCESS
 
 def test_decimal_values(analyzer):
     result = analyzer.analyze_nutrition({"sugar": 1.5}, {"sugar": 2.0})
@@ -46,4 +46,12 @@ def test_decimal_values(analyzer):
 
 def test_no_target(analyzer):
     assert analyzer.analyze_nutrition({"protein": 40}, {}) == {}
+
+@pytest.mark.parametrize(
+    ("total", "expected_status"),
+    [(9, "Deficit"), (10, "Within Target"), (11, "Excess")],
+)
+def test_nutrition_classification_u04(analyzer, total, expected_status):
+    result = analyzer.analyze_nutrition({"protein": total}, {"protein": 10})
+    assert result == {"protein": expected_status}
 
