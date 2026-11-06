@@ -7,6 +7,7 @@ VALID_PERIODS = frozenset({PERIOD_DAILY, PERIOD_WEEKLY})
 STATUS_DEFICIT = "Deficit"
 STATUS_EXCESS = "Excess"
 STATUS_WITHIN_TARGET = "Within Target"
+REQUIRED_NUTRIENTS = ("calories", "protein", "carbohydrates", "fat")
 
 class NutritionAnalyzer:
     
@@ -27,8 +28,44 @@ class NutritionAnalyzer:
     """
     def calculate_nutrition(self, planId: int, period: str) -> dict:
 
-        raise NotImplementedError
+        self.check_calculation_request(planId, period)
+        plan = self.mealPlanner.get_meal_plan(planId)
+        if plan is None:
+            raise ValueError(f"meal plan {planId} does not exist")
+ 
+        weekly_totals = {nutrient: 0 for nutrient in REQUIRED_NUTRIENTS}
+        daily_totals = {}
+        incomplete = False
+ 
+        for meal in plan["meals"]:
+            recipe = self.recipeManager.get_recipe(meal["recipe_id"])
+            nutrition = recipe.get("nutrition") or {}
+            if not self.has_required_nutrients(nutrition):
+                incomplete = True
+            scaled = self.scale_nutrition(nutrition, meal["servings"], recipe["servings"])
+            self.add_nutrition(weekly_totals, scaled)
+            self.add_nutrition(daily_totals.setdefault(meal["date"], {}), scaled)
+ 
+        totals = daily_totals if period == PERIOD_DAILY else weekly_totals
+        return {"period": period, "totals": totals, "incomplete": incomplete}
     
+    def check_calculation_request(self, plan_id: int, period: str) -> None:
+        if period not in VALID_PERIODS:
+            raise ValueError(f"period must be one of {sorted(VALID_PERIODS)}")
+        if plan_id < 1:
+            raise ValueError("plan_id must be greater than 0")
+
+    def has_required_nutrients(self, nutrition: dict) -> bool:
+        return all(self.is_number(nutrition.get(nutrient)) for nutrient in REQUIRED_NUTRIENTS)
+    
+    def scale_nutrition(self, nutrition: dict, planned_servings: float,recipe_servings: float) -> dict:
+
+        scale = planned_servings / recipe_servings
+        return {nutrient: value * scale for nutrient, value in nutrition.items() if self.is_number(value)}
+ 
+    def add_nutrition(self, totals: dict, additions: dict) -> None:
+        for nutrient, value in additions.items(): totals[nutrient] = totals.get(nutrient, 0) + value
+
     """
     Pre-conditions: 
         @requires nutrition_totals != None 
