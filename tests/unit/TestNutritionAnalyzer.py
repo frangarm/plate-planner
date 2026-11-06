@@ -112,23 +112,23 @@ RECIPES = {
     NO_FAT_ID: {"name": "Plain Rice", "servings": 2, "nutrition": {"calories": 400, "protein": 8, "carbohydrates": 90}},
 }
 
- # Helper Functions for tests
-def make_meal(meal_id, date, recipe_id, servings):
-    return {"meal_id": meal_id, "date": date, "meal_slot": "dinner", "recipe_id": recipe_id, "servings": servings}
+ # Helper Functions for calculate_nutrition tests
+def make_meal(mealId, date, recipeId, servings):
+    return {"mealId": mealId, "date": date, "mealSlot": "dinner", "recipeId": recipeId, "servings": servings}
  
 def make_plan(*meals):
-    return {"plan_id": PLAN_ID, "week_start": MONDAY, "meals": list(meals)}
+    return {"planId": PLAN_ID, "weekStart": MONDAY, "meals": list(meals)}
  
 def build_analyzer(plan):
     recipes = copy.deepcopy(RECIPES)
 
-    def fake_get_meal_plan(plan_id):
-        if plan_id == plan["plan_id"]:
+    def fake_get_meal_plan(planId):
+        if planId == plan["planId"]:
             return plan
         return None
  
-    def fake_get_recipe(recipe_id):
-        return recipes.get(recipe_id)
+    def fake_get_recipe(recipeId):
+        return recipes.get(recipeId)
  
     planner = Mock()
     planner.get_meal_plan.side_effect = fake_get_meal_plan
@@ -208,3 +208,30 @@ def test_meal_plan_and_every_planned_recipe_are_requested():
     planner.get_meal_plan.assert_called_with(PLAN_ID)
     requested_ids = {call.args[0] for call in recipe_manager.get_recipe.call_args_list}
     assert requested_ids == {OATMEAL_ID, SALAD_ID}
+
+# Tests for check_nutrition_data (N1)
+
+def make_complete_nutrition():
+    return {"calories": 300, "protein": 10, "carbohydrates": 50, "fat": 6}
+ 
+@pytest.fixture
+def analyzer():
+    return na.NutritionAnalyzer(mealPlanner=None, recipeManager=None)
+ 
+def test_all_required_values_present_is_true(analyzer):
+    assert analyzer.check_nutrition_data({1: make_complete_nutrition()}) is True
+ 
+def test_one_missing_required_value_is_false(analyzer):
+    entry = make_complete_nutrition()
+    del entry["fat"]
+    assert analyzer.check_nutrition_data({1: make_complete_nutrition(), 2: entry}) is False
+ 
+def test_zero_counts_as_an_available_value(analyzer):
+    entry = make_complete_nutrition()
+    entry["fat"] = 0
+    assert analyzer.check_nutrition_data({1: entry}) is True
+ 
+@pytest.mark.parametrize("bad_data", [None, [], "calories", 5])
+def test_nutrition_data_that_is_not_a_dict_is_rejected(analyzer, bad_data):
+    with pytest.raises(TypeError):
+        analyzer.check_nutrition_data(bad_data)

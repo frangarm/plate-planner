@@ -33,39 +33,51 @@ class NutritionAnalyzer:
         if plan is None:
             raise ValueError(f"meal plan {planId} does not exist")
  
-        weekly_totals = {nutrient: 0 for nutrient in REQUIRED_NUTRIENTS}
-        daily_totals = {}
+        weeklyTotals = {nutrient: 0 for nutrient in REQUIRED_NUTRIENTS}
+        dailyTotals = {}
         incomplete = False
  
         for meal in plan["meals"]:
-            recipe = self.recipeManager.get_recipe(meal["recipe_id"])
+            recipe = self.recipeManager.get_recipe(meal["recipeId"])
             nutrition = recipe.get("nutrition") or {}
             if not self.has_required_nutrients(nutrition):
                 incomplete = True
             scaled = self.scale_nutrition(nutrition, meal["servings"], recipe["servings"])
-            self.add_nutrition(weekly_totals, scaled)
-            self.add_nutrition(daily_totals.setdefault(meal["date"], {}), scaled)
+            self.add_nutrition(weeklyTotals, scaled)
+            self.add_nutrition(dailyTotals.setdefault(meal["date"], {}), scaled)
  
-        totals = daily_totals if period == PERIOD_DAILY else weekly_totals
+        totals = dailyTotals if period == PERIOD_DAILY else weeklyTotals
         return {"period": period, "totals": totals, "incomplete": incomplete}
     
     def check_calculation_request(self, plan_id: int, period: str) -> None:
         if period not in VALID_PERIODS:
             raise ValueError(f"period must be one of {sorted(VALID_PERIODS)}")
         if plan_id < 1:
-            raise ValueError("plan_id must be greater than 0")
+            raise ValueError("planId must be greater than 0")
 
     def has_required_nutrients(self, nutrition: dict) -> bool:
         return all(self.is_number(nutrition.get(nutrient)) for nutrient in REQUIRED_NUTRIENTS)
     
-    def scale_nutrition(self, nutrition: dict, planned_servings: float,recipe_servings: float) -> dict:
+    def scale_nutrition(self, nutrition: dict, plannedServings: float,recipeServings: float) -> dict:
 
-        scale = planned_servings / recipe_servings
+        scale = plannedServings / recipeServings
         return {nutrient: value * scale for nutrient, value in nutrition.items() if self.is_number(value)}
  
     def add_nutrition(self, totals: dict, additions: dict) -> None:
         for nutrient, value in additions.items(): totals[nutrient] = totals.get(nutrient, 0) + value
 
+    """
+        Pre-conditions: 
+            @requires nutrition_data != None 
+            @requires type(nutrition_data) == dict 
+
+        Post-conditions: 
+            @ensures \result == True iff all required nutrition information is available 
+            @ensures \result == False iff at least one required nutritional value is missing 
+    """
+    def check_nutrition_data(self, nutritionData: dict) -> bool: 
+        raise NotImplementedError
+    
     """
     Pre-conditions: 
         @requires nutrition_totals != None 
