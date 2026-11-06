@@ -49,6 +49,42 @@ class NutritionAnalyzer:
         nutrition_totals[nutrient] == reference_targets[nutrient] 
             => \result[nutrient] == "Within Target" 
     """
-    def analyze_nutrition(self, nutrition_totals: dict, reference_targets: dict) -> dict:
+    def analyze_nutrition(self, nutritionTotals: dict, referenceTargets: dict) -> dict:
+        analysis = {}
+
+        self.validate_analysis_input(nutritionTotals, referenceTargets)
+
+        for nutrient, target in referenceTargets.items():
+            total = nutritionTotals[nutrient]
+            if total < target:
+                analysis[nutrient] = STATUS_DEFICIT
+            elif total > target:
+                 analysis[nutrient] =  STATUS_EXCESS
+            else:
+                analysis[nutrient] = STATUS_WITHIN_TARGET
         
-        raise NotImplementedError
+        return analysis
+
+    # Helper function, makes sure the input is a number (either an integer or floating point)
+    @staticmethod
+    def is_number(value: object) -> bool:
+         return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    # Helper function, enforces the @requires clauses of analyze_nutrition
+    def validate_analysis_input(self, nutritionTotals: dict, referenceTargets: dict) -> None:
+
+         if not isinstance(nutritionTotals, dict):
+              raise TypeError("Nutrition Totals must be a dict")
+         if not isinstance(referenceTargets, dict):
+              raise TypeError("Reference Targers must be a dict")
+
+         for nutrient, target in referenceTargets.items():
+              if nutrient not in nutritionTotals:
+                   raise ValueError(f"Nutrition Totals has no value for '{nutrient}'")
+              if not self.is_number(nutritionTotals[nutrient]):
+                   raise TypeError(f"Nutrition Totals must be a number")
+              if not self.is_number(target):
+                   raise TypeError(f"Reference Targets must be a number")
+              if target < 0:
+                   raise ValueError(f"Reference Targets must not be negative")
+              
