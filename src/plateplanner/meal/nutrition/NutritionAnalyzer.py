@@ -76,7 +76,9 @@ class NutritionAnalyzer:
             @ensures \result == False iff at least one required nutritional value is missing 
     """
     def check_nutrition_data(self, nutritionData: dict) -> bool: 
-        raise NotImplementedError
+        if not isinstance(nutritionData, dict):
+            raise TypeError("nutrition_data must be a dict")
+        return all(self.has_required_nutrients(nutrition) for nutrition in nutritionData.values())
     
     """
     Pre-conditions: 
