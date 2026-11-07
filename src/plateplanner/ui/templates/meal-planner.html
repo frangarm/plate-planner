@@ -1,0 +1,512 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Plate Planner | Meal Planner</title>
+
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Meal Planner Stylesheet -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/meal-planner.css') }}">
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <h1>Plate Planner</h1>
+            <p>Meal Planning Made Simple</p>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="{{ url_for('home') }}"
+               class="nav-link">
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('recipes') }}"
+               class="nav-link">
+                Recipes
+            </a>
+
+            <a href="{{ url_for('meal_planner') }}"
+               class="nav-link active"
+               aria-current="page">
+                Meal Planner
+            </a>
+
+            <a href="{{ url_for('grocery_list') }}"
+               class="nav-link">
+                Grocery List
+            </a>
+
+            <a href="{{ url_for('nutrition') }}"
+               class="nav-link">
+                Nutrition
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <p>Plate Planner</p>
+        </div>
+
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Page Header -->
+        <header class="page-header">
+
+            <div>
+                <h2>Weekly Meal Planner</h2>
+                <p>
+                    Plan your meals for the week
+                    using your saved recipes.
+                </p>
+            </div>
+
+            <a href="#plan-settings"
+               class="btn btn-primary">
+                + New Meal Plan
+            </a>
+
+        </header>
+
+
+        <!-- Weekly Plan Settings -->
+        <section class="planner-panel"
+                 id="plan-settings">
+
+            <div class="planner-panel-heading">
+                <h2>Meal Plan Settings</h2>
+                <p>
+                    Select the starting date for
+                    your weekly meal plan.
+                </p>
+            </div>
+
+            <div class="planner-settings-row">
+
+                <div class="planner-field">
+                    <label for="week-start">
+                        Week Starting
+                    </label>
+
+                    <input
+                            type="date"
+                            id="week-start"
+                            name="week_start"
+                            required>
+                </div>
+
+                <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="create-plan"
+                        disabled>
+                    Create Weekly Plan
+                </button>
+
+            </div>
+
+            <p class="planner-help-text">
+                Weekly plan creation will be enabled
+                when the Python backend is connected.
+            </p>
+
+        </section>
+
+
+        <!-- Weekly Schedule -->
+        <section class="planner-schedule">
+
+            <div class="planner-section-heading">
+
+                <div>
+                    <h2>Weekly Schedule</h2>
+                    <p>
+                        View your planned breakfast,
+                        lunch, and dinner for each day.
+                    </p>
+                </div>
+
+                <span class="planner-status">
+                            No Plan Selected
+</span>
+
+            </div>
+
+
+            <!-- Days of the Week -->
+            <div class="planner-week-grid">
+
+                <!-- Monday -->
+                <article class="planner-day-card">
+
+                    <h3>Monday</h3>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Breakfast
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Lunch
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Dinner
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                </article>
+
+
+                <!-- Tuesday -->
+                <article class="planner-day-card">
+
+                    <h3>Tuesday</h3>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Breakfast
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Lunch
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Dinner
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                </article>
+
+
+                <!-- Wednesday -->
+                <article class="planner-day-card">
+
+                    <h3>Wednesday</h3>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Breakfast
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Lunch
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Dinner
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                </article>
+
+
+                <!-- Thursday -->
+                <article class="planner-day-card">
+
+                    <h3>Thursday</h3>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Breakfast
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Lunch
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Dinner
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                </article>
+
+
+                <!-- Friday -->
+                <article class="planner-day-card">
+
+                    <h3>Friday</h3>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Breakfast
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Lunch
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Dinner
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                </article>
+
+
+                <!-- Saturday -->
+                <article class="planner-day-card">
+
+                    <h3>Saturday</h3>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Breakfast
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Lunch
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Dinner
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                </article>
+
+
+                <!-- Sunday -->
+                <article class="planner-day-card">
+
+                    <h3>Sunday</h3>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Breakfast
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Lunch
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                    <div class="planner-meal">
+<span class="planner-meal-label">
+                                Dinner
+</span>
+                        <p>No meal planned</p>
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- Add Meal Form -->
+        <section class="planner-panel"
+                 id="add-meal-section">
+
+            <div class="planner-panel-heading">
+                <h2>Add Meal to Plan</h2>
+                <p>
+                    Choose a date, meal type,
+                    recipe, and serving amount.
+                </p>
+            </div>
+
+            <form id="add-meal-form">
+
+                <div class="planner-form-grid">
+
+                    <!-- Meal Date -->
+                    <div class="planner-field">
+
+                        <label for="meal-date">
+                            Meal Date
+                        </label>
+
+                        <input
+                                type="date"
+                                id="meal-date"
+                                name="meal_date"
+                                required>
+                    </div>
+
+
+                    <!-- Meal Slot -->
+                    <div class="planner-field">
+
+                        <label for="meal-slot">
+                            Meal Type
+                        </label>
+
+                        <select
+                                id="meal-slot"
+                                name="meal_slot"
+                                required>
+
+                            <option value="">
+                                Select meal type
+                            </option>
+
+                            <option value="breakfast">
+                                Breakfast
+                            </option>
+
+                            <option value="lunch">
+                                Lunch
+                            </option>
+
+                            <option value="dinner">
+                                Dinner
+                            </option>
+
+                        </select>
+                    </div>
+
+
+                    <!-- Saved Recipe -->
+                    <div class="planner-field">
+
+                        <label for="recipe-select">
+                            Recipe
+                        </label>
+
+                        <select
+                                id="recipe-select"
+                                name="recipe_id"
+                                required
+                                disabled>
+
+                            <option value="">
+                                No recipes loaded
+                            </option>
+
+                        </select>
+                    </div>
+
+
+                    <!-- Servings -->
+                    <div class="planner-field">
+
+                        <label for="meal-servings">
+                            Number of Servings
+                        </label>
+
+                        <input
+                                type="number"
+                                id="meal-servings"
+                                name="servings"
+                                min="1"
+                                step="1"
+                                value="1"
+                                required>
+                    </div>
+
+                </div>
+
+
+                <!-- Form Actions -->
+                <div class="planner-form-actions">
+
+                    <a href="{{ url_for('recipes') }}"
+                       class="btn btn-secondary">
+                        Manage Recipes
+                    </a>
+
+                    <button
+                            type="button"
+                            id="save-meal"
+                            class="btn btn-primary"
+                            disabled>
+                        Add Meal
+                    </button>
+
+                </div>
+
+                <p class="planner-help-text">
+                    Adding meals will be enabled after
+                    the recipe and meal plan backend
+                    connections are implemented.
+                </p>
+
+            </form>
+
+        </section>
+
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>Plate Planner | Team 3</p>
+        </footer>
+
+    </main>
+
+</div>
+
+<!-- Main JavaScript -->
+<script src="{{ url_for('static', filename='js/script.js') }}">
+</script>
+
+</body>
+</html>
