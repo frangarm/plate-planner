@@ -1,0 +1,498 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Plate Planner | Nutrition Analysis</title>
+
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Nutrition Page Stylesheet -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/nutrition.css') }}">
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <h1>Plate Planner</h1>
+            <p>Meal Planning Made Simple</p>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="{{ url_for('home') }}"
+               class="nav-link">
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('recipes') }}"
+               class="nav-link">
+                Recipes
+            </a>
+
+            <a href="{{ url_for('meal_planner') }}"
+               class="nav-link">
+                Meal Planner
+            </a>
+
+            <a href="{{ url_for('grocery_list') }}"
+               class="nav-link">
+                Grocery List
+            </a>
+
+            <a href="{{ url_for('nutrition') }}"
+               class="nav-link active"
+               aria-current="page">
+                Nutrition
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <p>Plate Planner</p>
+        </div>
+
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Page Header -->
+        <header class="page-header">
+
+            <div>
+                <h2>Nutrition Analysis</h2>
+                <p>
+                    Review the estimated nutritional values
+                    of your planned meals.
+                </p>
+            </div>
+
+            <a href="#nutrition-settings"
+               class="btn btn-primary">
+                View Nutrition
+            </a>
+
+        </header>
+
+
+        <!-- Nutrition Settings -->
+        <section class="nutrition-panel"
+                 id="nutrition-settings">
+
+            <div class="nutrition-panel-heading">
+                <h2>Analyze Meal Plan</h2>
+
+                <p>
+                    Select a saved meal plan and choose
+                    the period you want to analyze.
+                </p>
+            </div>
+
+            <div class="nutrition-settings-grid">
+
+                <!-- Meal Plan Selection -->
+                <div class="nutrition-field">
+
+                    <label for="nutrition-plan">
+                        Select Meal Plan
+                    </label>
+
+                    <select
+                            id="nutrition-plan"
+                            name="plan_id"
+                            disabled>
+
+                        <option value="">
+                            No meal plans loaded
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Analysis Period -->
+                <div class="nutrition-field">
+
+                    <label for="nutrition-period">
+                        Analysis Period
+                    </label>
+
+                    <select
+                            id="nutrition-period"
+                            name="period"
+                            disabled>
+
+                        <option value="daily">
+                            Daily
+                        </option>
+
+                        <option value="weekly">
+                            Weekly
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Analyze Button -->
+                <div class="nutrition-button-field">
+
+                    <button
+                            type="button"
+                            class="btn btn-primary"
+                            id="analyze-nutrition"
+                            disabled>
+                        Analyze Nutrition
+                    </button>
+
+                </div>
+
+            </div>
+
+            <p class="nutrition-help-text">
+                Nutrition analysis will be enabled
+                when the meal planning and nutrition
+                backend connections are implemented.
+            </p>
+
+        </section>
+
+
+        <!-- Nutrition Summary -->
+        <section class="nutrition-overview">
+
+            <div class="nutrition-section-heading">
+
+                <div>
+                    <h2>Nutrition Overview</h2>
+
+                    <p>
+                        Summary of your selected
+                        meal plan's nutrition results.
+                    </p>
+                </div>
+
+                <span class="nutrition-plan-status"
+                      id="nutrition-status">
+                    No Plan Selected
+                </span>
+
+            </div>
+
+
+            <!-- Summary Cards -->
+            <div class="nutrition-summary-grid">
+
+                <!-- Nutrients Analyzed -->
+                <div class="nutrition-summary-card">
+
+                    <h3>Nutrients Analyzed</h3>
+
+                    <p class="nutrition-summary-value"
+                       id="nutrients-analyzed">
+                        —
+                    </p>
+
+                    <span>
+                        Nutrients with available results
+                    </span>
+
+                </div>
+
+
+                <!-- Potential Deficits -->
+                <div class="nutrition-summary-card">
+
+                    <h3>Below Target</h3>
+
+                    <p class="nutrition-summary-value"
+                       id="nutrition-deficits">
+                        —
+                    </p>
+
+                    <span>
+                        Nutrients below reference targets
+                    </span>
+
+                </div>
+
+
+                <!-- Potential Excesses -->
+                <div class="nutrition-summary-card">
+
+                    <h3>Above Target</h3>
+
+                    <p class="nutrition-summary-value"
+                       id="nutrition-excesses">
+                        —
+                    </p>
+
+                    <span>
+                        Nutrients above reference targets
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Nutrition Results -->
+        <section class="nutrition-panel">
+
+            <div class="nutrition-panel-heading">
+
+                <h2>Nutrition Results</h2>
+
+                <p>
+                    Compare estimated nutritional totals
+                    with the reference targets for the
+                    selected period.
+                </p>
+
+            </div>
+
+
+            <!-- Missing Data Warning -->
+            <div class="nutrition-warning"
+                 id="nutrition-warning"
+                 role="status"
+                 hidden>
+
+                <strong>Incomplete Nutrition Data</strong>
+
+                <p>
+                    Some recipes are missing nutritional
+                    information. The results shown may
+                    be incomplete.
+                </p>
+
+            </div>
+
+
+            <!-- Results Table -->
+            <div class="nutrition-table-container">
+
+                <table class="nutrition-table"
+                       id="nutrition-table">
+
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            Nutrient
+                        </th>
+
+                        <th scope="col">
+                            Estimated Total
+                        </th>
+
+                        <th scope="col">
+                            Reference Target
+                        </th>
+
+                        <th scope="col">
+                            Result
+                        </th>
+                    </tr>
+                    </thead>
+
+
+                    <tbody id="nutrition-results">
+
+                    <!-- Nutrition results will go here -->
+
+                    <tr class="nutrition-empty-row">
+                        <td colspan="4">
+
+                            <div class="nutrition-empty-state">
+
+                                <div class="nutrition-empty-icon">
+                                    &#128202;
+                                </div>
+
+                                <h3>
+                                    No Nutrition Results Yet
+                                </h3>
+
+                                <p>
+                                    Select a saved meal plan
+                                    and run nutrition analysis
+                                    to view your results.
+                                </p>
+
+                                <a href="{{ url_for('meal_planner') }}"
+                                   class="btn btn-secondary">
+                                    View Meal Plans
+                                </a>
+
+                            </div>
+
+                        </td>
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- Additional Information -->
+        <div class="nutrition-info-grid">
+
+            <!-- Result Statuses -->
+            <section class="nutrition-panel">
+
+                <div class="nutrition-panel-heading">
+                    <h2>Understanding Your Results</h2>
+
+                    <p>
+                        Nutrition results are compared
+                        with reference targets.
+                    </p>
+                </div>
+
+
+                <div class="nutrition-status-list">
+
+                    <!-- Below Target -->
+                    <div class="nutrition-status-item">
+
+                        <span class="nutrition-indicator deficit">
+                            Deficit
+                        </span>
+
+                        <p>
+                            The estimated total is below
+                            the reference target.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Within Target -->
+                    <div class="nutrition-status-item">
+
+                        <span class="nutrition-indicator within-target">
+                            Within Target
+                        </span>
+
+                        <p>
+                            The estimated total matches
+                            the reference target.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Above Target -->
+                    <div class="nutrition-status-item">
+
+                        <span class="nutrition-indicator excess">
+                            Excess
+                        </span>
+
+                        <p>
+                            The estimated total is above
+                            the reference target.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Nutrition Information -->
+            <section class="nutrition-panel">
+
+                <div class="nutrition-panel-heading">
+                    <h2>About Nutrition Analysis</h2>
+
+                    <p>
+                        How Plate Planner calculates
+                        nutritional information.
+                    </p>
+                </div>
+
+                <div class="nutrition-info-content">
+
+                    <p>
+                        Plate Planner uses available
+                        nutrition information from
+                        your saved recipes to estimate
+                        the nutritional value of your
+                        planned meals.
+                    </p>
+
+                    <ul>
+                        <li>
+                            Values are adjusted based on
+                            the number of planned servings.
+                        </li>
+
+                        <li>
+                            Totals can be calculated
+                            for a day or an entire week.
+                        </li>
+
+                        <li>
+                            Results are compared with
+                            reference targets for the
+                            same period.
+                        </li>
+
+                        <li>
+                            Missing nutrition information
+                            can result in incomplete totals.
+                        </li>
+                    </ul>
+
+                    <div class="nutrition-disclaimer">
+                        <strong>Important:</strong>
+                        Nutrition results are estimates
+                        and are not intended to provide
+                        medical advice or diagnose
+                        nutritional problems.
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>Plate Planner | Team 3</p>
+        </footer>
+
+    </main>
+
+</div>
+
+<!-- Main JavaScript -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+/* Dashboard only: overview cards, weekly preview, and feature cards. */
+
+/* Overview Cards */
+.dashboard-overview {
+    margin-bottom: 40px;
+}
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.overview-card {
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.overview-card h3 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+.overview-card p {
+    color: #777;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 65px;
+}
+
+.card-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: #2e7d5b;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.card-link:hover {
+    text-decoration: underline;
+}
+
+/* Weekly Meal Planner */
+.weekly-planner {
+    margin-bottom: 40px;
+}
+
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.day-card {
+    background-color: white;
+    padding: 22px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.day-card h3 {
+    color: #2e7d5b;
+    margin: 0 0 20px;
+    font-size: 18px;
+}
+
+.meal-slot {
+    padding: 12px 0;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.meal-slot:last-child {
+    border-bottom: none;
+}
+
+.meal-slot strong {
+    font-size: 13px;
+}
+
+.meal-slot p {
+    color: #888;
+    font-size: 13px;
+    margin: 6px 0 0;
+}
+
+/* Additional Features */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.feature-card {
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.feature-card h3 {
+    margin-top: 0;
+}
+
+.feature-card > p {
+    color: #777;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.empty-state {
+    background-color: #f8faf9;
+    border: 1px dashed #d5dfd9;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.empty-state p {
+    color: #999;
+    font-size: 13px;
+}
+
+/* Dashboard grids */
+@media (max-width: 1100px) {
+    .overview-grid,
+    .week-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 800px) {
+    .overview-grid,
+    .week-grid,
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}

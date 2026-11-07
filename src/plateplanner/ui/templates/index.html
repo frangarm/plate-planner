@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Plate Planner | Dashboard</title>
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Dashboard styling -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <h1>Plate Planner</h1>
+            <p>Meal Planning Made Simple</p>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="{{ url_for('home') }}"
+               class="nav-link active">
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('recipes') }}"
+               class="nav-link">
+                <span>Recipes</span>
+            </a>
+
+            <a href="{{ url_for('meal_planner') }}"
+               class="nav-link">
+                <span>Meal Planner</span>
+            </a>
+
+            <a href="{{ url_for('grocery_list') }}"
+               class="nav-link">
+                <span>Grocery List</span>
+            </a>
+
+            <a href="{{ url_for('nutrition') }}"
+               class="nav-link">
+                <span>Nutrition</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <p>Plate Planner</p>
+        </div>
+
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Page Header -->
+        <header class="page-header">
+
+            <div>
+                <h2>Dashboard</h2>
+                <p>Welcome to Plate Planner!</p>
+            </div>
+
+            <a href="{{ url_for('meal_planner') }}"
+               class="btn btn-primary">
+                + Create Meal Plan
+            </a>
+
+        </header>
+
+
+        <!-- Dashboard Overview -->
+        <section class="dashboard-overview">
+
+            <h2 class="section-title">Overview</h2>
+
+            <div class="overview-grid">
+
+                <!-- Recipes Card -->
+                <div class="overview-card">
+
+                    <div class="card-header">
+                        <h3>My Recipes</h3>
+                    </div>
+
+                    <p>
+                        Save and manage your favorite recipes,
+                        ingredients, and serving sizes.
+                    </p>
+
+                    <a href="{{ url_for('recipes') }}"
+                       class="card-link">
+                        Manage Recipes
+                    </a>
+
+                </div>
+
+
+                <!-- Meal Plans Card -->
+                <div class="overview-card">
+
+                    <div class="card-header">
+                        <h3>Meal Plans</h3>
+                    </div>
+
+                    <p>
+                        Create weekly meal plans and organize
+                        what you want to eat each day.
+                    </p>
+
+                    <a href="{{ url_for('meal_planner') }}"
+                       class="card-link">
+                        View Meal Plans
+                    </a>
+
+                </div>
+
+
+                <!-- Grocery List Card -->
+                <div class="overview-card">
+
+                    <div class="card-header">
+                        <h3>Grocery Lists</h3>
+                    </div>
+
+                    <p>
+                        Generate grocery lists based on your
+                        planned meals and recipes.
+                    </p>
+
+                    <a href="{{ url_for('grocery_list') }}"
+                       class="card-link">
+                        View Grocery List
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Weekly Meal Planner -->
+        <section class="weekly-planner">
+
+            <div class="section-header">
+
+                <div>
+                    <h2 class="section-title">
+                        Weekly Meal Planner
+                    </h2>
+
+                    <p>
+                        View and organize your meals for the week.
+                    </p>
+                </div>
+
+                <a href="{{ url_for('meal_planner') }}"
+                   class="btn btn-secondary">
+                    Manage Meal Plan
+                </a>
+
+            </div>
+
+
+            <!-- Weekly Calendar -->
+            <div class="week-grid">
+
+                <!-- Monday -->
+                <div class="day-card">
+
+                    <h3>Monday</h3>
+
+                    <div class="meal-slot">
+                        <strong>Breakfast</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Lunch</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Dinner</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Tuesday -->
+                <div class="day-card">
+
+                    <h3>Tuesday</h3>
+
+                    <div class="meal-slot">
+                        <strong>Breakfast</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Lunch</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Dinner</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Wednesday -->
+                <div class="day-card">
+
+                    <h3>Wednesday</h3>
+
+                    <div class="meal-slot">
+                        <strong>Breakfast</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Lunch</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Dinner</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Thursday -->
+                <div class="day-card">
+
+                    <h3>Thursday</h3>
+
+                    <div class="meal-slot">
+                        <strong>Breakfast</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Lunch</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Dinner</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Friday -->
+                <div class="day-card">
+
+                    <h3>Friday</h3>
+
+                    <div class="meal-slot">
+                        <strong>Breakfast</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Lunch</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Dinner</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Saturday -->
+                <div class="day-card">
+
+                    <h3>Saturday</h3>
+
+                    <div class="meal-slot">
+                        <strong>Breakfast</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Lunch</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Dinner</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Sunday -->
+                <div class="day-card">
+
+                    <h3>Sunday</h3>
+
+                    <div class="meal-slot">
+                        <strong>Breakfast</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Lunch</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                    <div class="meal-slot">
+                        <strong>Dinner</strong>
+                        <p>Not planned</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Additional Features -->
+        <section class="features-section">
+
+            <div class="features-grid">
+
+                <!-- Grocery List Preview -->
+                <div class="feature-card">
+
+                    <h3>Grocery List</h3>
+
+                    <p>
+                        Keep track of the ingredients needed
+                        for your planned meals.
+                    </p>
+
+                    <div class="empty-state">
+                        <p>No grocery items to display yet.</p>
+                    </div>
+
+                    <a href="{{ url_for('grocery_list') }}"
+                       class="btn btn-secondary">
+                        View Grocery List
+                    </a>
+
+                </div>
+
+
+                <!-- Nutrition Preview -->
+                <div class="feature-card">
+
+                    <h3>Nutrition Overview</h3>
+
+                    <p>
+                        Review the estimated nutritional
+                        values of your planned meals.
+                    </p>
+
+                    <div class="empty-state">
+                        <p>No nutrition information to display yet.</p>
+                    </div>
+
+                    <a href="{{ url_for('nutrition') }}"
+                       class="btn btn-secondary">
+                        View Nutrition
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>Plate Planner | Team 3</p>
+        </footer>
+
+    </main>
+
+</div>
+
+<!-- Main JavaScript -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

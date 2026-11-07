@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Plate Planner | Grocery List</title>
+
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Grocery List Stylesheet -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/grocery-list.css') }}">
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <h1>Plate Planner</h1>
+            <p>Meal Planning Made Simple</p>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="{{ url_for('home') }}"
+               class="nav-link">
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('recipes') }}"
+               class="nav-link">
+                Recipes
+            </a>
+
+            <a href="{{ url_for('meal_planner') }}"
+               class="nav-link">
+                Meal Planner
+            </a>
+
+            <a href="{{ url_for('grocery_list') }}"
+               class="nav-link active"
+               aria-current="page">
+                Grocery List
+            </a>
+
+            <a href="{{ url_for('nutrition') }}"
+               class="nav-link">
+                Nutrition
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <p>Plate Planner</p>
+        </div>
+
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Page Header -->
+        <header class="page-header">
+
+            <div>
+                <h2>Grocery List Management</h2>
+
+                <p>
+                    Organize your shopping list based
+                    on your planned meals.
+                </p>
+            </div>
+
+            <a href="#grocery-settings"
+               class="btn btn-primary">
+                + Generate Grocery List
+            </a>
+
+        </header>
+
+
+        <!-- Grocery List Settings -->
+        <section class="grocery-panel"
+                 id="grocery-settings">
+
+            <div class="grocery-panel-heading">
+                <h2>Generate Grocery List</h2>
+
+                <p>
+                    Select a saved meal plan to generate
+                    a list of the ingredients you need.
+                </p>
+            </div>
+
+            <div class="grocery-settings-row">
+
+                <!-- Select Meal Plan -->
+                <div class="grocery-field">
+
+                    <label for="meal-plan-select">
+                        Select Meal Plan
+                    </label>
+
+                    <select
+                            id="meal-plan-select"
+                            name="plan_id"
+                            disabled>
+
+                        <option value="">
+                            No meal plans loaded
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- Generate Button -->
+                <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="generate-grocery-list"
+                        disabled>
+                    Generate List
+                </button>
+
+            </div>
+
+            <p class="grocery-help-text">
+                Grocery list generation will be enabled
+                when the meal planning and grocery list
+                backend connections are implemented.
+            </p>
+
+        </section>
+
+
+        <!-- Grocery List Summary -->
+        <section class="grocery-summary">
+
+            <h2 class="grocery-section-title">
+                Grocery List Overview
+            </h2>
+
+            <div class="grocery-summary-grid">
+
+                <!-- Total Items -->
+                <div class="grocery-summary-card">
+
+                    <h3>Total Items</h3>
+
+                    <p class="grocery-summary-value"
+                       id="total-items">
+                        —
+                    </p>
+
+                    <span>
+                        Items on your grocery list
+                    </span>
+
+                </div>
+
+
+                <!-- Purchased Items -->
+                <div class="grocery-summary-card">
+
+                    <h3>Purchased</h3>
+
+                    <p class="grocery-summary-value"
+                       id="purchased-items">
+                        —
+                    </p>
+
+                    <span>
+                        Items marked as purchased
+                    </span>
+
+                </div>
+
+
+                <!-- Remaining Items -->
+                <div class="grocery-summary-card">
+
+                    <h3>Remaining</h3>
+
+                    <p class="grocery-summary-value"
+                       id="remaining-items">
+                        —
+                    </p>
+
+                    <span>
+                        Items still needed
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Grocery List Content -->
+        <div class="grocery-workspace">
+
+            <!-- Saved Grocery List -->
+            <section class="grocery-panel">
+
+                <div class="grocery-panel-heading">
+
+                    <h2>My Grocery List</h2>
+
+                    <p>
+                        View your ingredients and keep track
+                        of what you have purchased.
+                    </p>
+
+                </div>
+
+
+                <!-- Grocery List Table -->
+                <div class="grocery-table-container">
+
+                    <table class="grocery-table"
+                           id="grocery-table">
+
+                        <thead>
+                        <tr>
+                            <th scope="col">Ingredient</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Unit</th>
+                            <th scope="col">Purchased</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="grocery-items">
+
+                        <!-- Items will be loaded here -->
+
+                        <tr class="grocery-empty-row">
+                            <td colspan="5">
+
+                                <div class="grocery-empty-state">
+
+                                    <div class="grocery-empty-icon">
+                                        &#128722;
+                                    </div>
+
+                                    <h3>No Grocery List Yet</h3>
+
+                                    <p>
+                                        Generate a grocery list
+                                        from one of your meal plans
+                                        to see your ingredients here.
+                                    </p>
+
+                                    <a href="{{ url_for('meal_planner') }}"
+                                       class="btn btn-secondary">
+                                        View Meal Plans
+                                    </a>
+
+                                </div>
+
+                            </td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- Grocery List Actions -->
+            <div class="grocery-side-panel">
+
+                <!-- Add Grocery Item -->
+                <section class="grocery-panel">
+
+                    <div class="grocery-panel-heading">
+
+                        <h2>Add Grocery Item</h2>
+
+                        <p>
+                            Add an ingredient manually
+                            to your grocery list.
+                        </p>
+
+                    </div>
+
+
+                    <form id="add-grocery-item-form">
+
+                        <!-- Ingredient Name -->
+                        <div class="grocery-field">
+
+                            <label for="grocery-item-name">
+                                Ingredient Name
+                            </label>
+
+                            <input
+                                    type="text"
+                                    id="grocery-item-name"
+                                    name="name"
+                                    placeholder="e.g. Milk"
+                                    required>
+
+                        </div>
+
+
+                        <!-- Quantity -->
+                        <div class="grocery-field">
+
+                            <label for="grocery-quantity">
+                                Quantity
+                            </label>
+
+                            <input
+                                    type="number"
+                                    id="grocery-quantity"
+                                    name="quantity"
+                                    min="0.01"
+                                    step="any"
+                                    placeholder="Enter quantity"
+                                    required>
+
+                        </div>
+
+
+                        <!-- Measurement Unit -->
+                        <div class="grocery-field">
+
+                            <label for="grocery-unit">
+                                Unit
+                            </label>
+
+                            <select
+                                    id="grocery-unit"
+                                    name="unit"
+                                    required>
+
+                                <option value="">
+                                    Select unit
+                                </option>
+
+                                <option value="g">
+                                    Grams
+                                </option>
+
+                                <option value="kg">
+                                    Kilograms
+                                </option>
+
+                                <option value="oz">
+                                    Ounces
+                                </option>
+
+                                <option value="lb">
+                                    Pounds
+                                </option>
+
+                                <option value="cup">
+                                    Cups
+                                </option>
+
+                                <option value="tbsp">
+                                    Tablespoons
+                                </option>
+
+                                <option value="tsp">
+                                    Teaspoons
+                                </option>
+
+                                <option value="ml">
+                                    Milliliters
+                                </option>
+
+                                <option value="l">
+                                    Liters
+                                </option>
+
+                                <option value="each">
+                                    Each
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Add Item Button -->
+                        <button
+                                type="button"
+                                class="btn btn-primary grocery-add-btn"
+                                id="add-grocery-item"
+                                disabled>
+                            + Add Item
+                        </button>
+
+                        <p class="grocery-help-text">
+                            Adding items will be enabled
+                            when grocery list saving is connected.
+                        </p>
+
+                    </form>
+
+                </section>
+
+
+                <!-- Grocery List Information -->
+                <section class="grocery-panel grocery-info-panel">
+
+                    <h2>How It Works</h2>
+
+                    <p>
+                        Plate Planner uses your weekly
+                        meal plan to create a grocery list.
+                    </p>
+
+                    <ul>
+                        <li>
+                            Ingredients are collected
+                            from your planned recipes.
+                        </li>
+
+                        <li>
+                            Quantities are adjusted based
+                            on the number of servings.
+                        </li>
+
+                        <li>
+                            Matching ingredients are
+                            combined when their units
+                            are compatible.
+                        </li>
+
+                        <li>
+                            You can update quantities,
+                            remove items, and mark items
+                            as purchased.
+                        </li>
+                    </ul>
+
+                </section>
+
+            </div>
+
+        </div>
+
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>Plate Planner | Team 3</p>
+        </footer>
+
+    </main>
+
+</div>
+
+<!-- Main JavaScript -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>
