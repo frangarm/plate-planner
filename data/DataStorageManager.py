@@ -79,3 +79,19 @@ class DataStorageManager:
     """
     def delete_record(self, record_type: str, record_id: int) -> bool: 
         raise NotImplementedError
+    
+    """
+        Pre-conditions: 
+
+            @requires record_type in {"recipe", "meal_plan", "grocery_list"} 
+            @requires record_data != None 
+            @requires type(record_data) == dict 
+
+    Post-conditions: 
+
+            @ensures \result == True iff all required record references are valid 
+            @ensures \ result == False iff at least one required record reference is invalid 
+            @ensures database remains unchanged 
+    """
+    def validate_relationships(self, record_type: str, record_data: dict) -> bool:
+        raise NotImplementedError 
