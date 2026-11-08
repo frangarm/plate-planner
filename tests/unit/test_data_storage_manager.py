@@ -25,8 +25,7 @@ def make_grocery_list():
 def storage():
     return dsm.DataStorageManager(":memory:")
 
-# D1: Save Record tests
-
+# D1: save_record tests
 def test_saved_recipe_has_positive_id_stored(storage):
     record_id = storage.save_record(RECIPE, make_recipe("Rice Bowl"))
     assert record_id is not None and record_id > 0
@@ -55,3 +54,80 @@ def test_record_data_that_is_not_dict_rejected(storage, bad_data):
     with pytest.raises(TypeError):
         storage.save_record(RECIPE, bad_data)
 
+# D1: validate_relationships tests
+def test_meal_plan_with_saved_recipes_has_valid_relationships(storage):
+    first = storage.save_record(RECIPE, make_recipe("Rice Bowl"))
+    second = storage.save_record(RECIPE, make_recipe("Oatmeal"))
+    assert storage.validate_relationships(MEAL_PLAN, make_plan(first, second)) is True
+
+def test_meal_plan_with_a_missing_recipe_has_invalid_relationships(storage):
+    saved = storage.save_record(RECIPE, make_recipe())
+    assert storage.validate_relationships(MEAL_PLAN, make_plan(saved, 99)) is False
+
+def test_record_that_refers_to_nothing_has_valid_relationships(storage):
+    assert storage.validate_relationships(RECIPE, make_recipe()) is True
+    assert storage.validate_relationships(MEAL_PLAN, make_plan()) is True
+
+def test_validate_relationships_does_not_change_the_database(storage):
+    storage.validate_relationships(MEAL_PLAN, make_plan(99))
+    storage.validate_relationships(RECIPE, make_recipe())
+    assert storage.get_all_records(RECIPE) == []
+    assert storage.get_all_records(MEAL_PLAN) == []
+
+def test_validate_relationships_rejects_bad_arguments(storage):
+    with pytest.raises(ValueError):
+        storage.validate_relationships("shopping_cart", make_recipe())
+    with pytest.raises(TypeError):
+        storage.validate_relationships(RECIPE, None)
+
+"""@pytest.mark.parametrize("bad_id", [0, -1])
+def test_record_id_below_one_is_rejected(storage, bad_id):
+    with pytest.raises(ValueError):
+        storage.update_record(RECIPE, bad_id, make_recipe())
+    with pytest.raises(ValueError):
+        storage.delete_record(RECIPE, bad_id)"""
+    
+# D2: get_records and get_all_records tests 
+def test_saved_record_is_returned_with_its_id_and_nested_data(storage):
+    record_id = storage.save_record(RECIPE, make_recipe("Rice Bowl"))
+    record = storage.get_record(RECIPE, record_id)
+    assert record["record_id"] == record_id
+    assert record["servings"] == 2
+    assert record["ingredients"] == [{"name": "Rice", "quantity": 1, "unit": "cup"}]
+
+def test_record_that_does_not_exist_gives_none(storage):
+    assert storage.get_record(RECIPE, 99) is None 
+
+def test_records_of_other_types_are_not_returned(storage):
+    recipe_id = storage.save_record(RECIPE, make_recipe())
+    list_id = storage.save_record(GROCERY_LIST, make_grocery_list())
+    assert storage.get_record(MEAL_PLAN, recipe_id) is None
+    assert [record["record_id"] for record in storage.get_all_records(GROCERY_LIST)] == [list_id]
+ 
+def test_no_saved_records_gives_an_empty_list(storage):
+    assert storage.get_all_records(RECIPE) == []
+ 
+def test_all_saved_records_of_the_type_are_returned(storage):
+    first = storage.save_record(RECIPE, make_recipe("Rice Bowl"))
+    second = storage.save_record(RECIPE, make_recipe("Oatmeal"))
+    storage.save_record(GROCERY_LIST, make_grocery_list())
+    records = storage.get_all_records(RECIPE)
+    assert {record["record_id"] for record in records} == {first, second}
+ 
+def test_reading_does_not_change_the_stored_record(storage):
+    record_id = storage.save_record(RECIPE, make_recipe("Rice Bowl"))
+    storage.get_record(RECIPE, record_id)["name"] = "Changed"
+    storage.get_all_records(RECIPE)[0]["name"] = "Changed"
+    assert storage.get_record(RECIPE, record_id)["name"] == "Rice Bowl"
+ 
+def test_unknown_record_type_is_rejected(storage):
+    with pytest.raises(ValueError):
+        storage.get_record("shopping_cart", 1)
+    with pytest.raises(ValueError):
+        storage.get_all_records("shopping_cart")
+ 
+@pytest.mark.parametrize("bad_id", [0, -1])
+def test_record_id_below_one_is_rejected(storage, bad_id):
+    with pytest.raises(ValueError):
+        storage.get_record(RECIPE, bad_id)
+ 
