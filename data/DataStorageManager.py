@@ -111,7 +111,25 @@ class DataStorageManager:
         @ensures \result == False => existing record remains unchanged 
     """
     def update_record(self, record_type: str, record_id: int, record_data: dict) -> bool:
-        raise NotImplementedError
+        self.check_record_type(record_type)
+        self.check_record_id(record_id)
+        self.check_record_data(record_data)
+        
+        if self.get_record(record_type, record_id) is None:
+            return False
+        
+        if not self.validate_relationships(record_type, record_data):
+            return False
+        
+        try:
+            with self._db:
+                self._db.execute(
+                    "UPDATE records SET data = ? WHERE record_type = ? AND record_id = ?",
+                    (json.dumps(record_data), record_type, record_id))
+        except sqlite3.Error as error:
+            raise StorageError(f"cannot update {record_type} {record_id}: {error}") from error
+        return True
+
     
     """
     Pre-conditions: 
@@ -124,7 +142,28 @@ class DataStorageManager:
         @ensures \result == False => existing record remains unchanged 
     """
     def delete_record(self, record_type: str, record_id: int) -> bool: 
-        raise NotImplementedError
+        self.check_record_type(record_type)
+        self.check_record_id(record_id)
+        if self.get_record(record_type, record_id) is None:
+            return False
+        
+        if record_type == RECORD_TYPE_RECIPE and self.is_used_by_a_meal_plan(record_id):
+            return False
+        
+        try:
+            with self._db:
+                self._db.execute(
+                    "DELETE FROM records WHERE record_type = ? AND record_id = ?",
+                    (record_type, record_id))
+        except sqlite3.Error as error:
+            raise StorageError(f"cannot delete {record_type} {record_id}: {error}") from error
+        return True
+
+    #Helper function that checks if a recipe is used by a meal plan
+    def is_used_by_a_meal_plan(self, recipe_id: int) -> bool:
+        
+        return any(meal.get("recipe_id") == recipe_id for plan in self.get_all_records(RECORD_TYPE_MEAL_PLAN) for meal in plan.get("meals", []))
+
     
     """
         Pre-conditions: 
