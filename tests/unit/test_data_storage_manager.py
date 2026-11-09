@@ -81,7 +81,7 @@ def test_validate_relationships_rejects_bad_arguments(storage):
         storage.validate_relationships(RECIPE, None)
 
 @pytest.mark.parametrize("bad_id", [0, -1])
-def test_record_id_below_one_is_rejected(storage, bad_id):
+def test_record_id_below_one_is_rejected_below_one(storage, bad_id):
     with pytest.raises(ValueError):
         storage.update_record(RECIPE, bad_id, make_recipe())
     with pytest.raises(ValueError):

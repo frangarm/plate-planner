@@ -185,7 +185,7 @@ class DataStorageManager:
             return True
         return all(self.recipe_is_saved(meal.get("recipe_id")) for meal in record_data.get("meals", []))
 
-    #Helper that checks whetehr a recipe with the given ID is saved
+    #Helper that checks whether a recipe with the given ID is saved
     def recipe_is_saved(self, recipe_id: object) -> bool:
         if not isinstance(recipe_id, int) or isinstance(recipe_id, bool) or recipe_id < 1:
             return False

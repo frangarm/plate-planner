@@ -11,56 +11,59 @@ REQUIRED_NUTRIENTS = ("calories", "protein", "carbohydrates", "fat")
 
 class NutritionAnalyzer:
     
-    def __init__(self, mealPlanner : MealPlanner, recipeManager : RecipeManager):
-            self.mealPlanner = mealPlanner
-            self.recipeManager = recipeManager
+    def __init__(self, meal_planner : MealPlanner, recipe_manager : RecipeManager):
+            self.meal_planner = meal_planner
+            self.recipe_manager = recipe_manager
     
     """
     Pre-Conditions:
         @requires plan_id > 0 
-        @requires plain_id exists
+        @requires plan_id exists
         @requires period in {"daily", "weekly"}
     Post-Condition:
         @ensures \result contains nutritional totals for the selected period
-        @ensures \forall nutrings in available nutrition information:
-            totalNutrient = sum(recipeNutrient * (plannedServings / recipeServings))
-        @ensures no planned meals => all nutrional totals == 0
+        @ensures \forall nutrients in available nutrition information:
+            total_nutrient = sum(recipe_nutrient * (planned_servings / recipe_servings))
+        @ensures no planned meals => all nutritional totals == 0
     """
-    def calculate_nutrition(self, planId: int, period: str) -> dict:
+    def calculate_nutrition(self, plan_id: int, period: str) -> dict:
 
-        self.check_calculation_request(planId, period)
-        plan = self.mealPlanner.get_meal_plan(planId)
+        self.check_calculation_request(plan_id, period)
+        plan = self.meal_planner.get_meal_plan(plan_id)
+        
         if plan is None:
-            raise ValueError(f"meal plan {planId} does not exist")
- 
-        weeklyTotals = {nutrient: 0 for nutrient in REQUIRED_NUTRIENTS}
-        dailyTotals = {}
+            raise ValueError(f"meal plan {plan_id} does not exist")
+        
+        weekly_totals = {nutrient: 0 for nutrient in REQUIRED_NUTRIENTS}
+        daily_totals = {}
         incomplete = False
  
         for meal in plan["meals"]:
-            recipe = self.recipeManager.get_recipe(meal["recipeId"])
+            recipe = self.recipe_manager.get_recipe(meal["recipe_id"])
+            if recipe is None:
+                        raise ValueError(f"recipe {meal['recipe_id']} does not exist")
             nutrition = recipe.get("nutrition") or {}
             if not self.has_required_nutrients(nutrition):
                 incomplete = True
             scaled = self.scale_nutrition(nutrition, meal["servings"], recipe["servings"])
-            self.add_nutrition(weeklyTotals, scaled)
-            self.add_nutrition(dailyTotals.setdefault(meal["date"], {}), scaled)
+            self.add_nutrition(weekly_totals, scaled)
+            self.add_nutrition(daily_totals.setdefault(meal["date"], {}), scaled)
  
-        totals = dailyTotals if period == PERIOD_DAILY else weeklyTotals
+        totals = daily_totals if period == PERIOD_DAILY else weekly_totals
         return {"period": period, "totals": totals, "incomplete": incomplete}
     
     def check_calculation_request(self, plan_id: int, period: str) -> None:
         if period not in VALID_PERIODS:
             raise ValueError(f"period must be one of {sorted(VALID_PERIODS)}")
         if plan_id < 1:
-            raise ValueError("planId must be greater than 0")
+            raise ValueError("plan_id must be greater than 0")
 
     def has_required_nutrients(self, nutrition: dict) -> bool:
         return all(self.is_number(nutrition.get(nutrient)) for nutrient in REQUIRED_NUTRIENTS)
     
-    def scale_nutrition(self, nutrition: dict, plannedServings: float,recipeServings: float) -> dict:
+    def scale_nutrition(self, nutrition: dict, planned_servings: float,recipe_servings: float) -> dict:
 
-        scale = plannedServings / recipeServings
+        scale = planned_servings / recipe_servings
         return {nutrient: value * scale for nutrient, value in nutrition.items() if self.is_number(value)}
  
     def add_nutrition(self, totals: dict, additions: dict) -> None:
@@ -75,10 +78,10 @@ class NutritionAnalyzer:
             @ensures \result == True iff all required nutrition information is available 
             @ensures \result == False iff at least one required nutritional value is missing 
     """
-    def check_nutrition_data(self, nutritionData: dict) -> bool: 
-        if not isinstance(nutritionData, dict):
-            raise TypeError("nutritionData must be a dict")
-        return all(self.has_required_nutrients(nutrition) for nutrition in nutritionData.values())
+    def check_nutrition_data(self, nutrition_data: dict) -> bool: 
+        if not isinstance(nutrition_data, dict):
+            raise TypeError("nutrition_data must be a dict")
+        return all(self.has_required_nutrients(nutrition) for nutrition in nutrition_data.values())
     
     """
     Pre-conditions: 
@@ -100,13 +103,13 @@ class NutritionAnalyzer:
         nutrition_totals[nutrient] == reference_targets[nutrient] 
             => \result[nutrient] == "Within Target" 
     """
-    def analyze_nutrition(self, nutritionTotals: dict, referenceTargets: dict) -> dict:
+    def analyze_nutrition(self, nutrition_totals: dict, reference_targets: dict) -> dict:
         analysis = {}
 
-        self.validate_analysis_input(nutritionTotals, referenceTargets)
+        self.validate_analysis_input(nutrition_totals, reference_targets)
 
-        for nutrient, target in referenceTargets.items():
-            total = nutritionTotals[nutrient]
+        for nutrient, target in reference_targets.items():
+            total = nutrition_totals[nutrient]
             if total < target:
                 analysis[nutrient] = STATUS_DEFICIT
             elif total > target:
@@ -122,17 +125,17 @@ class NutritionAnalyzer:
          return isinstance(value, (int, float)) and not isinstance(value, bool)
 
     # Helper function, enforces the @requires clauses of analyze_nutrition
-    def validate_analysis_input(self, nutritionTotals: dict, referenceTargets: dict) -> None:
+    def validate_analysis_input(self, nutrition_totals: dict, reference_targets: dict) -> None:
 
-         if not isinstance(nutritionTotals, dict):
+         if not isinstance(nutrition_totals, dict):
               raise TypeError("Nutrition Totals must be a dict")
-         if not isinstance(referenceTargets, dict):
-              raise TypeError("Reference Targers must be a dict")
+         if not isinstance(reference_targets, dict):
+              raise TypeError("Reference Targets must be a dict")
 
-         for nutrient, target in referenceTargets.items():
-              if nutrient not in nutritionTotals:
+         for nutrient, target in reference_targets.items():
+              if nutrient not in nutrition_totals:
                    raise ValueError(f"Nutrition Totals has no value for '{nutrient}'")
-              if not self.is_number(nutritionTotals[nutrient]):
+              if not self.is_number(nutrition_totals[nutrient]):
                    raise TypeError(f"Nutrition Totals must be a number")
               if not self.is_number(target):
                    raise TypeError(f"Reference Targets must be a number")

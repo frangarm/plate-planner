@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 @pytest.fixture
 def analyzer():
-    return na.NutritionAnalyzer(mealPlanner = None, recipeManager = None)
+    return na.NutritionAnalyzer(meal_planner = None, recipe_manager = None)
 
 #Will test analyze_nutrition (N2)
 def test_deficit(analyzer):
@@ -113,17 +113,17 @@ RECIPES = {
 }
 
  # Helper Functions for calculate_nutrition tests
-def make_meal(mealId, date, recipeId, servings):
-    return {"mealId": mealId, "date": date, "mealSlot": "dinner", "recipeId": recipeId, "servings": servings}
+def make_meal(meal_id, date, recipe_id, servings):
+    return {"meal_id": meal_id, "date": date, "meal_slot": "dinner", "recipe_id": recipe_id, "servings": servings}
  
 def make_plan(*meals):
-    return {"planId": PLAN_ID, "weekStart": MONDAY, "meals": list(meals)}
+    return {"plan_id": PLAN_ID, "week_start": MONDAY, "meals": list(meals)}
  
 def build_analyzer(plan):
     recipes = copy.deepcopy(RECIPES)
 
-    def fake_get_meal_plan(planId):
-        if planId == plan["planId"]:
+    def fake_get_meal_plan(plan_id):
+        if plan_id == plan["plan_id"]:
             return plan
         return None
  
@@ -216,7 +216,7 @@ def make_complete_nutrition():
  
 @pytest.fixture
 def analyzer():
-    return na.NutritionAnalyzer(mealPlanner=None, recipeManager=None)
+    return na.NutritionAnalyzer(meal_planner=None, recipe_manager=None)
  
 def test_all_required_values_present_is_true(analyzer):
     assert analyzer.check_nutrition_data({1: make_complete_nutrition()}) is True
@@ -235,3 +235,8 @@ def test_zero_counts_as_an_available_value(analyzer):
 def test_nutrition_data_that_is_not_a_dict_is_rejected(analyzer, bad_data):
     with pytest.raises(TypeError):
         analyzer.check_nutrition_data(bad_data)
+
+def test_recipe_that_does_not_exist_is_rejected():
+    analyzer, _, _ = build_analyzer(make_plan(make_meal(1, MONDAY, 99, 1)))
+    with pytest.raises(ValueError):
+        analyzer.calculate_nutrition(PLAN_ID, na.PERIOD_WEEKLY)
