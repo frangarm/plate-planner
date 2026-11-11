@@ -113,8 +113,7 @@
 
                     <select
                             id="meal-plan-select"
-                            name="plan_id"
-                            disabled>
+                            name="plan_id">
 
                         <option value="">
                             No meal plans loaded
@@ -128,8 +127,7 @@
                 <button
                         type="button"
                         class="btn btn-primary"
-                        id="generate-grocery-list"
-                        disabled>
+                        id="generate-grocery-list">
                     Generate List
                 </button>
 
@@ -401,10 +399,9 @@
 
                         <!-- Add Item Button -->
                         <button
-                                type="button"
+                                type="submit"
                                 class="btn btn-primary grocery-add-btn"
-                                id="add-grocery-item"
-                                disabled>
+                                id="add-grocery-item">
                             + Add Item
                         </button>
 
@@ -469,7 +466,8 @@
 </div>
 
 <!-- Main JavaScript -->
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grocery-list.js') }}">
+</script>
 
 </body>
 </html>

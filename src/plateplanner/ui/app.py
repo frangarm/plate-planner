@@ -7,9 +7,13 @@ from flask import Flask, jsonify, render_template, request
 
 from data.DataStorageManager import DataStorageManager, StorageError
 from plateplanner.management.recipe.RecipeManager import RecipeManager
+from plateplanner.ui.grocery_api import grocery_api
+from plateplanner.ui.meal_api import meal_api
 
 
 app = Flask(__name__)
+app.register_blueprint(grocery_api)
+app.register_blueprint(meal_api)
 
 # Local SQLite database used for development and testing.
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
