@@ -114,11 +114,17 @@
                             required>
                 </div>
 
+                <div class="planner-field">
+                    <label for="existing-plan-select">Saved Meal Plans</label>
+                    <select id="existing-plan-select">
+                        <option value="">Select a saved plan</option>
+                    </select>
+                </div>
+
                 <button
                         type="button"
                         class="btn btn-primary"
-                        id="create-plan"
-                        disabled>
+                        id="create-plan">
                     Create Weekly Plan
                 </button>
 
@@ -477,8 +483,7 @@
                     <button
                             type="button"
                             id="save-meal"
-                            class="btn btn-primary"
-                            disabled>
+                            class="btn btn-primary">
                         Add Meal
                     </button>
 
@@ -505,7 +510,7 @@
 </div>
 
 <!-- Main JavaScript -->
-<script src="{{ url_for('static', filename='js/script.js') }}">
+<script src="{{ url_for('static', filename='js/meal-planner.js') }}">
 </script>
 
 </body>

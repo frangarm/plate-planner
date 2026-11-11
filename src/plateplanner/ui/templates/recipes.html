@@ -97,6 +97,9 @@
                     </p>
                 </div>
 
+                <!-- Recipes loaded from SQLite -->
+                <div id="saved-recipes"></div>
+
                 <!-- Empty State -->
                 <div class="recipe-empty-state">
 
@@ -286,8 +289,7 @@
                         <button
                                 type="button"
                                 class="btn btn-secondary add-ingredient-btn"
-                                id="add-ingredient"
-                                disabled>
+                                id="add-ingredient">
                             + Add Another Ingredient
                         </button>
 
@@ -307,8 +309,7 @@
                         <button
                                 type="submit"
                                 class="btn btn-primary"
-                                id="save-recipe"
-                                disabled>
+                                id="save-recipe">
                             Save Recipe
                         </button>
 
@@ -336,7 +337,7 @@
 </div>
 
 <!-- Main JavaScript -->
-<script src="{{ url_for('static', filename='js/script.js') }}">
+<script src="{{ url_for('static', filename='js/recipes.js') }}">
 </script>
 
 </body>

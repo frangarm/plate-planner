@@ -1,8 +1,30 @@
 
-from flask import Flask, render_template, jsonify
+"""Flask application for the Plate Planner web interface."""
+
+from pathlib import Path
+
+from flask import Flask, jsonify, render_template, request
+
+from data.DataStorageManager import DataStorageManager, StorageError
+from plateplanner.management.recipe.RecipeManager import RecipeManager
+from plateplanner.ui.grocery_api import grocery_api
+from plateplanner.ui.meal_api import meal_api
+
 
 app = Flask(__name__)
+app.register_blueprint(grocery_api)
+app.register_blueprint(meal_api)
 
+# Local SQLite database used for development and testing.
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DATABASE_PATH = PROJECT_ROOT / "plateplanner_demo.db"
+
+recipe_manager = RecipeManager()
+
+
+# -------------------------
+# Page Routes
+# -------------------------
 
 @app.route("/")
 def home():
@@ -34,11 +56,82 @@ def nutrition():
     return render_template("nutrition.html")
 
 
+# -------------------------
+# Recipe API
+# -------------------------
+
+@app.route("/api/recipes", methods=["GET"])
+def get_recipes():
+    """Retrieve all recipes stored in the SQLite database."""
+    try:
+        db = DataStorageManager(str(DATABASE_PATH))
+
+        try:
+            saved_recipes = db.get_all_records("recipe")
+        finally:
+            db.close()
+
+        return jsonify(saved_recipes), 200
+
+    except StorageError:
+        app.logger.exception("Unable to retrieve recipes")
+        return jsonify({
+            "error": "Unable to retrieve recipes."
+        }), 500
+
+
+@app.route("/api/recipes", methods=["POST"])
+def save_recipe():
+    """Validate and save a recipe to the SQLite database."""
+    if not request.is_json:
+        return jsonify({
+            "error": "Recipe data must be sent as JSON."
+        }), 400
+
+    recipe_data = request.get_json(silent=True)
+
+    # Use the existing RecipeManager for validation.
+    if not recipe_manager.validate_recipe(recipe_data):
+        return jsonify({
+            "error": "Invalid recipe information."
+        }), 400
+
+    try:
+        db = DataStorageManager(str(DATABASE_PATH))
+
+        try:
+            recipe_id = db.save_record("recipe", recipe_data)
+
+            if recipe_id is None:
+                return jsonify({
+                    "error": "Recipe could not be saved."
+                }), 400
+
+            saved_recipe = db.get_record("recipe", recipe_id)
+        finally:
+            db.close()
+
+        return jsonify({
+            "message": "Recipe saved successfully.",
+            "recipe": saved_recipe
+        }), 201
+
+    except StorageError:
+        app.logger.exception("Unable to save recipe")
+        return jsonify({
+            "error": "Unable to save recipe."
+        }), 500
+
+
+# -------------------------
+# Connection Test
+# -------------------------
+
 @app.route("/api/test")
 def test_connection():
     """Test communication between the frontend and backend."""
     return jsonify({
-        "message": "Successfully connected to Python!"
+        "message": "Successfully connected to backend"
     })
 
 
