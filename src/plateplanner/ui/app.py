@@ -8,7 +8,10 @@ from flask import Flask, jsonify, render_template, request
 from data.DataStorageManager import DataStorageManager, StorageError
 from plateplanner.management.recipe.RecipeManager import RecipeManager
 from plateplanner.ui.grocery_api import grocery_api
-from plateplanner.ui.meal_api import meal_api
+from plateplanner.ui.meal_api import RecipeLookup, meal_api
+from plateplanner.meal.nutrition.NutritionAnalyzer import (
+    NutritionAnalyzer, PERIOD_DAILY, VALID_PERIODS,
+)
 
 
 app = Flask(__name__)
@@ -54,6 +57,55 @@ def grocery_list():
 def nutrition():
     """Display the nutrition analysis page."""
     return render_template("nutrition.html")
+
+
+class NutritionLookup(RecipeLookup):
+    def get_meal_plan(self, plan_id):
+        return self.database.get_record("meal_plan", plan_id)
+
+
+@app.get("/api/meal-plans/<int:plan_id>/nutrition")
+def get_nutrition(plan_id):
+    """Calculate nutrition from a saved weekly plan."""
+    period = request.args.get("period", "weekly")
+    if plan_id < 1 or period not in VALID_PERIODS:
+        return jsonify({"error": "Select a valid plan and analysis period."}), 400
+
+    try:
+        db = DataStorageManager(str(DATABASE_PATH))
+        try:
+            lookup = NutritionLookup(db)
+            if lookup.get_meal_plan(plan_id) is None:
+                return jsonify({"error": "Meal plan not found."}), 404
+            analyzer = NutritionAnalyzer(lookup, lookup)
+            result = analyzer.calculate_nutrition(plan_id, period)
+            daily_targets = {"calories": 2000, "protein": 50, "carbohydrates": 250, "fat": 70}
+            if period == PERIOD_DAILY:
+                groups = result["totals"]
+                targets = daily_targets
+            else:
+                groups = {"Weekly total": result["totals"]}
+                targets = {nutrient: value * 7 for nutrient, value in daily_targets.items()}
+
+            result["targets"] = targets
+            result["comparisons"] = {}
+            if not result["incomplete"]:
+                for label, totals in groups.items():
+                    available_targets = {
+                        nutrient: target for nutrient, target in targets.items()
+                        if nutrient in totals
+                    }
+                    result["comparisons"][label] = analyzer.analyze_nutrition(
+                        totals, available_targets
+                    )
+            return jsonify(result)
+        finally:
+            db.close()
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+    except StorageError:
+        app.logger.exception("Unable to calculate nutrition")
+        return jsonify({"error": "Unable to calculate nutrition."}), 500
 
 
 # -------------------------
