@@ -123,6 +123,47 @@ def save_recipe():
         }), 500
 
 
+@app.route("/api/recipes/<int:recipe_id>", methods=["PUT", "DELETE"])
+def change_recipe(recipe_id):
+    """Update or delete a saved recipe."""
+    if recipe_id < 1:
+        return jsonify({"error": "Invalid recipe ID."}), 400
+
+    if request.method == "PUT":
+        recipe_data = request.get_json(silent=True)
+        if not recipe_manager.validate_recipe(recipe_data):
+            return jsonify({"error": "Invalid recipe information."}), 400
+
+    try:
+        db = DataStorageManager(str(DATABASE_PATH))
+        try:
+            existing = db.get_record("recipe", recipe_id)
+            if existing is None:
+                return jsonify({"error": "Recipe not found."}), 404
+
+            if request.method == "DELETE":
+                if db.delete_record("recipe", recipe_id):
+                    return jsonify({"message": "Recipe deleted."})
+                if db.get_record("recipe", recipe_id) is None:
+                    return jsonify({"error": "Recipe not found."}), 404
+                return jsonify({"error": "This recipe is used in a saved meal plan."}), 409
+
+            # Preserve stored fields that the recipe form does not edit.
+            existing.update(recipe_data)
+            existing.pop("record_id", None)
+            if not db.update_record("recipe", recipe_id, existing):
+                return jsonify({"error": "Recipe not found."}), 404
+            return jsonify({
+                "message": "Recipe updated.",
+                "recipe": db.get_record("recipe", recipe_id),
+            })
+        finally:
+            db.close()
+    except StorageError:
+        app.logger.exception("Unable to change recipe")
+        return jsonify({"error": "Unable to change recipe."}), 500
+
+
 # -------------------------
 # Connection Test
 # -------------------------
