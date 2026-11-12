@@ -1,5 +1,6 @@
 import json
 import sqlite3
+from contextlib import contextmanager, nullcontext
  
 RECORD_TYPE_RECIPE = "recipe"
 RECORD_TYPE_MEAL_PLAN = "meal_plan"
@@ -40,6 +41,16 @@ class DataStorageManager:
         """Close the database connection."""
         self._db.close()
     
+    @contextmanager
+    def write_transaction(self):
+        """Serialize a read followed by a write across database connections."""
+        try:
+            with self._db:
+                self._db.execute("BEGIN IMMEDIATE")
+                yield
+        except sqlite3.Error as error:
+            raise StorageError("Could not complete the database transaction.") from error
+
     #Helper functions, will check the record type, data, and id of incoming store requests 
     @staticmethod
     def check_record_type(record_type: str) -> None:
@@ -122,7 +133,8 @@ class DataStorageManager:
             return False
         
         try:
-            with self._db:
+            transaction = nullcontext() if self._db.in_transaction else self._db
+            with transaction:
                 self._db.execute(
                     "UPDATE records SET data = ? WHERE record_type = ? AND record_id = ?",
                     (json.dumps(record_data), record_type, record_id))
@@ -144,19 +156,17 @@ class DataStorageManager:
     def delete_record(self, record_type: str, record_id: int) -> bool: 
         self.check_record_type(record_type)
         self.check_record_id(record_id)
-        if self.get_record(record_type, record_id) is None:
-            return False
-        
-        if record_type == RECORD_TYPE_RECIPE and self.is_used_by_a_meal_plan(record_id):
-            return False
-        
-        try:
-            with self._db:
-                self._db.execute(
-                    "DELETE FROM records WHERE record_type = ? AND record_id = ?",
-                    (record_type, record_id))
-        except sqlite3.Error as error:
-            raise StorageError(f"cannot delete {record_type} {record_id}: {error}") from error
+        with self.write_transaction():
+            if self.get_record(record_type, record_id) is None:
+                return False
+
+            if record_type == RECORD_TYPE_RECIPE and self.is_used_by_a_meal_plan(record_id):
+                return False
+
+            self._db.execute(
+                "DELETE FROM records WHERE record_type = ? AND record_id = ?",
+                (record_type, record_id),
+            )
         return True
 
     #Helper function that checks if a recipe is used by a meal plan

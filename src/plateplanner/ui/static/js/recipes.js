@@ -16,7 +16,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const nameField = document.getElementById("recipe-name");
     const servingsField = document.getElementById("servings");
     const clearButton = form.querySelector('[type="reset"]');
+    const nutritionFields = form.querySelectorAll("[data-nutrient]");
     let editingId = null;
+    let existingNutrition = {};
 
     /**
      * Display a message to the user.
@@ -110,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     form.addEventListener("reset", () => {
         editingId = null;
+        existingNutrition = {};
         saveButton.textContent = "Save Recipe";
         clearButton.textContent = "Clear";
         ingredientsSection.querySelectorAll(".ingredient-entry").forEach(entry => {
@@ -126,6 +129,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         form.reset();
         editingId = recipe.record_id;
+        existingNutrition = recipe.nutrition || {};
+        for (const field of nutritionFields) {
+            field.value = existingNutrition[field.dataset.nutrient] ?? "";
+        }
         nameField.value = recipe.name;
         servingsField.value = recipe.servings;
         recipe.ingredients.forEach((ingredient, index) => {
@@ -195,6 +202,19 @@ document.addEventListener("DOMContentLoaded", () => {
             servings: Number(servingsField.value),
             ingredients: getIngredients()
         };
+
+        const nutrition = {...existingNutrition};
+        for (const field of nutritionFields) {
+            const nutrient = field.dataset.nutrient;
+            if (field.value === "") {
+                delete nutrition[nutrient];
+            } else {
+                nutrition[nutrient] = Number(field.value);
+            }
+        }
+        if (editingId !== null || Object.keys(nutrition).length > 0) {
+            recipe.nutrition = nutrition;
+        }
 
         const url = editingId === null ? "/api/recipes" : "/api/recipes/" + editingId;
         const method = editingId === null ? "POST" : "PUT";

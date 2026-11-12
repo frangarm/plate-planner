@@ -172,6 +172,22 @@
                     </div>
 
 
+                    <fieldset>
+                        <legend>Nutrition for the whole recipe (optional)</legend>
+                        {% for nutrient, label in [
+                            ('calories', 'Calories'),
+                            ('protein', 'Protein (g)'),
+                            ('carbohydrates', 'Carbohydrates (g)'),
+                            ('fat', 'Fat (g)')
+                        ] %}
+                            <div class="form-group">
+                                <label for="recipe-{{ nutrient }}">{{ label }}</label>
+                                <input id="recipe-{{ nutrient }}" data-nutrient="{{ nutrient }}"
+                                       type="number" min="0" step="any">
+                            </div>
+                        {% endfor %}
+                    </fieldset>
+
                     <!-- Ingredients Section -->
                     <div class="ingredients-section">
 
