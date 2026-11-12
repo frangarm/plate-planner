@@ -130,85 +130,68 @@ def get_meal_plan(plan_id):
         }), 500
 
 
+@meal_api.route("/api/meal-plans/<int:plan_id>/meals", methods=["POST"])
 @meal_api.route(
-    "/api/meal-plans/<int:plan_id>/meals",
-    methods=["POST"]
+    "/api/meal-plans/<int:plan_id>/meals/<int:meal_index>",
+    methods=["PUT", "DELETE"],
 )
-def add_meal(plan_id):
-    """Validate and add a meal to a saved weekly plan."""
+def change_meal(plan_id, meal_index=None):
+    """Add, edit or remove a meal in a saved weekly plan."""
     if plan_id < 1:
         return jsonify({"error": "Invalid plan ID."}), 400
 
-    meal_data = request.get_json(silent=True)
-
-    if not isinstance(meal_data, dict):
-        return jsonify({
-            "error": "Invalid meal information."
-        }), 400
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "Invalid meal information."}), 400
 
     try:
         db = open_database()
-
         try:
-            plan = db.get_record("meal_plan", plan_id)
+            with db.write_transaction():
+                plan = db.get_record("meal_plan", plan_id)
+                if plan is None:
+                    return jsonify({"error": "Meal plan not found."}), 404
 
-            if plan is None:
-                return jsonify({
-                    "error": "Meal plan not found."
-                }), 404
+                meals = plan.get("meals", [])
+                if meal_index is not None and (
+                    meal_index >= len(meals)
+                    or meals[meal_index] != payload.get("original")
+                ):
+                    return jsonify({
+                        "error": "This meal changed. Refresh the plan and try again."
+                    }), 409
 
-            # Allow MealPlanner to find real recipes in SQLite.
-            planner = MealPlanner(
-                recipe_manager=RecipeLookup(db)
-            )
+                if request.method == "DELETE":
+                    del meals[meal_index]
+                else:
+                    meal_data = payload if meal_index is None else payload.get("meal")
+                    planner = MealPlanner(recipe_manager=RecipeLookup(db))
+                    if not planner.validate_meal(meal_data):
+                        return jsonify({"error": "Invalid meal or recipe information."}), 400
 
-            if not planner.validate_meal(meal_data):
-                return jsonify({
-                    "error": "Invalid meal or recipe information."
-                }), 400
+                    start = date.fromisoformat(plan["weekStart"])
+                    meal_date = date.fromisoformat(meal_data["date"])
+                    if not start <= meal_date <= start + timedelta(days=6):
+                        return jsonify({"error": "Meal must be within the selected week."}), 400
 
-            # Make sure the meal is within the selected week.
-            start = date.fromisoformat(plan["weekStart"])
-            meal_date = date.fromisoformat(meal_data["date"])
+                    meal = {
+                        "date": meal_data["date"],
+                        "mealSlot": meal_data["mealSlot"],
+                        "recipe_id": meal_data["recipeId"],
+                        "servings": meal_data["servings"],
+                    }
+                    if meal_index is None:
+                        meals.append(meal)
+                    else:
+                        meals[meal_index] = {**meals[meal_index], **meal}
 
-            if not start <= meal_date <= start + timedelta(days=6):
-                return jsonify({
-                    "error": "Meal must be within the selected week."
-                }), 400
-
-            # Match the field names used by the other components.
-            meal = {
-                "date": meal_data["date"],
-                "mealSlot": meal_data["mealSlot"],
-                "recipe_id": meal_data["recipeId"],
-                "servings": meal_data["servings"]
-            }
-
-            updated_plan = {
-                "weekStart": plan["weekStart"],
-                "meals": plan.get("meals", []) + [meal]
-            }
-
-            saved = db.update_record(
-                "meal_plan",
-                plan_id,
-                updated_plan
-            )
-
-            if not saved:
-                return jsonify({
-                    "error": "Could not add meal."
-                }), 400
-
-            return jsonify(
-                db.get_record("meal_plan", plan_id)
-            ), 200
-
+                plan["meals"] = meals
+                del plan["record_id"]
+                if not db.update_record("meal_plan", plan_id, plan):
+                    return jsonify({"error": "Could not save meal changes."}), 400
+                return jsonify({**plan, "record_id": plan_id}), 200
         finally:
             db.close()
-
     except (StorageError, ValueError, TypeError):
-        current_app.logger.exception("Unable to add meal")
-        return jsonify({
-            "error": "Unable to add meal."
-        }), 500
+        current_app.logger.exception("Unable to save meal changes")
+        return jsonify({"error": "Unable to save meal changes."}), 500

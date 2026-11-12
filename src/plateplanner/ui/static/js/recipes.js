@@ -13,6 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const ingredientsSection = document.querySelector(".ingredients-section");
     const firstIngredient = document.querySelector(".ingredient-entry");
     const status = document.querySelector(".form-note");
+    const nameField = document.getElementById("recipe-name");
+    const servingsField = document.getElementById("servings");
+    const clearButton = form.querySelector('[type="reset"]');
+    const nutritionFields = form.querySelectorAll("[data-nutrient]");
+    let editingId = null;
+    let existingNutrition = {};
 
     /**
      * Display a message to the user.
@@ -48,7 +54,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 ingredients.appendChild(item);
             }
 
-            card.append(title, servings, ingredients);
+            const edit = document.createElement("button");
+            edit.type = "button";
+            edit.className = "btn btn-secondary";
+            edit.textContent = "Edit";
+            edit.addEventListener("click", () => editRecipe(recipe));
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "btn btn-secondary";
+            remove.textContent = "Delete";
+            remove.addEventListener("click", () => deleteRecipe(recipe, remove));
+
+            const actions = document.createElement("div");
+            actions.className = "form-actions";
+            actions.append(edit, remove);
+            card.append(title, servings, ingredients, actions);
             savedRecipes.appendChild(card);
         }
     }
@@ -75,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /**
      * Add another ingredient input row.
      */
-    addIngredientButton.addEventListener("click", () => {
+    function addIngredientRow() {
         const newEntry = firstIngredient.cloneNode(true);
 
         newEntry.querySelectorAll("input, select").forEach(field => {
@@ -84,7 +105,76 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         ingredientsSection.insertBefore(newEntry, addIngredientButton);
+        return newEntry;
+    }
+
+    addIngredientButton.addEventListener("click", addIngredientRow);
+
+    form.addEventListener("reset", () => {
+        editingId = null;
+        existingNutrition = {};
+        saveButton.textContent = "Save Recipe";
+        clearButton.textContent = "Clear";
+        ingredientsSection.querySelectorAll(".ingredient-entry").forEach(entry => {
+            if (entry !== firstIngredient) {
+                entry.remove();
+            }
+        });
+        showMessage("");
     });
+
+    function editRecipe(recipe) {
+        if (saveButton.disabled) {
+            return;
+        }
+        form.reset();
+        editingId = recipe.record_id;
+        existingNutrition = recipe.nutrition || {};
+        for (const field of nutritionFields) {
+            field.value = existingNutrition[field.dataset.nutrient] ?? "";
+        }
+        nameField.value = recipe.name;
+        servingsField.value = recipe.servings;
+        recipe.ingredients.forEach((ingredient, index) => {
+            const entry = index === 0 ? firstIngredient : addIngredientRow();
+            entry.querySelector('[name="ingredient_name"]').value = ingredient.name;
+            entry.querySelector('[name="quantity"]').value = ingredient.quantity;
+            const unit = entry.querySelector('[name="unit"]');
+            if (![...unit.options].some(option => option.value === ingredient.unit)) {
+                unit.add(new Option(ingredient.unit, ingredient.unit));
+            }
+            unit.value = ingredient.unit;
+        });
+        saveButton.textContent = "Save Changes";
+        clearButton.textContent = "Cancel Edit";
+        nameField.focus();
+        showMessage("Editing " + recipe.name);
+    }
+
+    async function deleteRecipe(recipe, button) {
+        if (saveButton.disabled || !window.confirm("Delete " + recipe.name + "?")) {
+            return;
+        }
+        button.disabled = true;
+        try {
+            const response = await fetch("/api/recipes/" + recipe.record_id, {
+                method: "DELETE"
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || "Unable to delete recipe.");
+            }
+            if (editingId === recipe.record_id) {
+                form.reset();
+            }
+            showMessage(result.message);
+            await loadRecipes();
+        } catch (error) {
+            showMessage(error.message);
+        } finally {
+            button.disabled = false;
+        }
+    }
 
     /**
      * Collect all ingredient entries.
@@ -108,17 +198,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const recipe = {
-            name: document.getElementById("recipe-name").value.trim(),
-            servings: Number(document.getElementById("servings").value),
+            name: nameField.value.trim(),
+            servings: Number(servingsField.value),
             ingredients: getIngredients()
         };
 
+        const nutrition = {...existingNutrition};
+        for (const field of nutritionFields) {
+            const nutrient = field.dataset.nutrient;
+            if (field.value === "") {
+                delete nutrition[nutrient];
+            } else {
+                nutrition[nutrient] = Number(field.value);
+            }
+        }
+        if (editingId !== null || Object.keys(nutrition).length > 0) {
+            recipe.nutrition = nutrition;
+        }
+
+        const url = editingId === null ? "/api/recipes" : "/api/recipes/" + editingId;
+        const method = editingId === null ? "POST" : "PUT";
         saveButton.disabled = true;
+        clearButton.disabled = true;
         showMessage("Saving recipe...");
 
         try {
-            const response = await fetch("/api/recipes", {
-                method: "POST",
+            const response = await fetch(url, {
+                method,
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -133,16 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             form.reset();
 
-            // Remove extra ingredient rows after saving.
-            document.querySelectorAll(".ingredient-entry").forEach(
-                (entry, index) => {
-                    if (index > 0) {
-                        entry.remove();
-                    }
-                }
-            );
-
-            showMessage("Recipe saved successfully!");
+            showMessage(result.message);
             await loadRecipes();
 
         } catch (error) {
@@ -150,6 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showMessage(error.message);
         } finally {
             saveButton.disabled = false;
+            clearButton.disabled = false;
         }
     });
 

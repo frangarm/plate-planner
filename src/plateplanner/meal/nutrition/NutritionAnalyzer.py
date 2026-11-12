@@ -42,7 +42,9 @@ class NutritionAnalyzer:
             recipe = self.recipe_manager.get_recipe(meal["recipe_id"])
             if recipe is None:
                         raise ValueError(f"recipe {meal['recipe_id']} does not exist")
-            nutrition = recipe.get("nutrition") or {}
+            nutrition = recipe.get("nutrition")
+            if not isinstance(nutrition, dict):
+                nutrition = {}
             if not self.has_required_nutrients(nutrition):
                 incomplete = True
             scaled = self.scale_nutrition(nutrition, meal["servings"], recipe["servings"])
