@@ -24,6 +24,29 @@ document.addEventListener("DOMContentLoaded", () => {
     let recipes = [];
     let plans = [];
     let selectedPlan = null;
+    let editing = null;
+    let saving = false;
+    const mealDate = document.getElementById("meal-date");
+    const mealSlot = document.getElementById("meal-slot");
+    const mealServings = document.getElementById("meal-servings");
+    const cancelEdit = document.createElement("button");
+    cancelEdit.type = "button";
+    cancelEdit.className = "btn btn-secondary";
+    cancelEdit.textContent = "Cancel Edit";
+    cancelEdit.hidden = true;
+    addMealButton.after(cancelEdit);
+
+    function resetEdit() {
+        editing = null;
+        addMealForm.reset();
+        addMealButton.textContent = "Add Meal";
+        cancelEdit.hidden = true;
+    }
+
+    cancelEdit.addEventListener("click", () => {
+        resetEdit();
+        mealStatus.textContent = "Meal edit canceled.";
+    });
 
     /**
      * Send an API request and return its JSON response.
@@ -119,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * Display meals in the seven-day calendar.
      */
     function renderPlan() {
-        addMealButton.disabled = !selectedPlan || recipes.length === 0;
+        addMealButton.disabled = saving || !selectedPlan || recipes.length === 0;
 
         if (!selectedPlan) {
             scheduleStatus.textContent = "No Plan Selected";
@@ -153,24 +176,53 @@ document.addEventListener("DOMContentLoaded", () => {
                     ".planner-meal-label"
                 ).textContent.trim().toLowerCase();
 
-                const matchingMeals = selectedPlan.meals.filter(
-                    meal => meal.date === dateText &&
-                        meal.mealSlot === slot
-                );
+                const contents = section.querySelector("p");
+                contents.replaceChildren();
 
-                const descriptions = matchingMeals.map(meal => {
-                    const recipe = recipes.find(
-                        item => item.record_id === meal.recipe_id
-                    );
+                selectedPlan.meals.forEach((meal, mealIndex) => {
+                    if (meal.date !== dateText || meal.mealSlot !== slot) {
+                        return;
+                    }
 
+                    const recipe = recipes.find(item => item.record_id === meal.recipe_id);
                     const name = recipe ? recipe.name : "Unknown Recipe";
-                    return `${name} (${meal.servings} servings)`;
+                    const row = document.createElement("span");
+                    row.style.display = "block";
+                    row.append(`${name} (${meal.servings} servings) `);
+
+                    for (const [label, action] of [
+                        ["Edit", () => {
+                            if (saving) return;
+                            editing = {mealIndex, original: meal};
+                            mealDate.value = meal.date;
+                            mealSlot.value = meal.mealSlot;
+                            recipeSelect.value = String(meal.recipe_id);
+                            mealServings.value = meal.servings;
+                            addMealButton.textContent = "Save Changes";
+                            cancelEdit.hidden = false;
+                            mealStatus.textContent = "Editing " + name;
+                            mealDate.focus();
+                        }],
+                        ["Remove", () => {
+                            if (!saving && window.confirm("Remove " + name + " from this plan?")) {
+                                saveMeal("DELETE", {original: meal}, mealIndex, "Meal removed.");
+                            }
+                        }]
+                    ]) {
+                        const button = document.createElement("button");
+                        button.type = "button";
+                        button.className = "btn btn-secondary";
+                        button.textContent = label;
+                        button.disabled = saving;
+                        button.addEventListener("click", action);
+                        row.append(button, " ");
+                    }
+                    contents.append(row);
                 });
 
-                section.querySelector("p").textContent =
-                    descriptions.length
-                        ? descriptions.join(", ")
-                        : "No meal planned";
+                if (!contents.hasChildNodes()) {
+                    contents.textContent = "No meal planned";
+                }
             });
         });
     }
@@ -184,6 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        resetEdit();
         createButton.disabled = true;
 
         try {
@@ -209,6 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * Switch between previously saved meal plans.
      */
     planSelect.addEventListener("change", () => {
+        resetEdit();
         selectedPlan = plans.find(
             plan => String(plan.record_id) === planSelect.value
         ) || null;
@@ -225,53 +279,58 @@ document.addEventListener("DOMContentLoaded", () => {
         renderPlan();
     });
 
-    /**
-     * Validate and add a meal to the selected plan.
-     */
-    addMealButton.addEventListener("click", async () => {
-        if (!selectedPlan || !addMealForm.reportValidity()) {
+    addMealButton.addEventListener("click", () => {
+        if (saving || !selectedPlan || !addMealForm.reportValidity()) {
             return;
         }
 
         const meal = {
-            date: document.getElementById("meal-date").value,
-            mealSlot: document.getElementById("meal-slot").value,
+            date: mealDate.value,
+            mealSlot: mealSlot.value,
             recipeId: Number(recipeSelect.value),
-            servings: Number(
-                document.getElementById("meal-servings").value
-            )
+            servings: Number(mealServings.value)
         };
 
-        addMealButton.disabled = true;
+        if (editing) {
+            saveMeal("PUT", {original: editing.original, meal}, editing.mealIndex, "Meal updated.");
+        } else {
+            saveMeal("POST", meal, null, "Meal added successfully!");
+        }
+    });
+
+    async function saveMeal(method, payload, mealIndex, message) {
+        const planId = selectedPlan.record_id;
+        const base = `/api/meal-plans/${planId}/meals`;
+        const url = mealIndex === null ? base : `${base}/${mealIndex}`;
+        saving = true;
+        createButton.disabled = true;
+        planSelect.disabled = true;
+        cancelEdit.disabled = true;
+        renderPlan();
 
         try {
-            const updated = await apiRequest(
-                `/api/meal-plans/${selectedPlan.record_id}/meals`,
-                {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(meal)
-                }
-            );
-
+            const updated = await apiRequest(url, {
+                method,
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
             selectedPlan = updated;
-
-            plans = plans.map(plan =>
-                plan.record_id === updated.record_id
-                    ? updated
-                    : plan
-            );
-
-            renderPlan();
-            mealStatus.textContent = "Meal added successfully!";
-
+            plans = plans.map(plan => plan.record_id === planId ? updated : plan);
+            resetEdit();
+            mealStatus.textContent = message;
         } catch (error) {
             mealStatus.textContent = error.message;
         } finally {
-            addMealButton.disabled =
-                !selectedPlan || recipes.length === 0;
+            saving = false;
+            createButton.disabled = false;
+            planSelect.disabled = false;
+            cancelEdit.disabled = false;
+            renderPlan();
+            if (method === "DELETE") {
+                planStatus.textContent = mealStatus.textContent;
+            }
         }
-    });
+    }
 
     /**
      * Load recipes and meal plans when the page opens.
