@@ -12,13 +12,36 @@ class MealPlanner:
         self.meal_plans = {}
         self.next_plan_id = 1
 
+    @staticmethod
+    def _build_meal_record(meal_data: dict) -> dict:
+        return {
+            "date": meal_data["date"],
+            "mealSlot": meal_data["mealSlot"],
+            "recipe_id": meal_data["recipeId"],
+            "servings": meal_data["servings"]
+        }
+
+    @staticmethod
+    def _is_valid_meal_index(meals: list, meal_index: int) -> bool:
+        return not (
+            not isinstance(meal_index, int)
+            or isinstance(meal_index, bool)
+            or meal_index < 0
+            or meal_index >= len(meals)
+        )
+
+    @staticmethod
+    def _parse_date(value: str) -> datetime | None:
+        try:
+            return datetime.strptime(value, "%Y-%m-%d")
+        except (ValueError, TypeError):
+            return None
+
     # Contract M1: Maintain Weekly Meal Plans
     def create_meal_plan(self, week_start: str) -> int | None:
 
         # Check that the date is valid
-        try:
-            datetime.strptime(week_start, "%Y-%m-%d")
-        except (ValueError, TypeError):
+        if self._parse_date(week_start) is None:
             return None
 
         # Assign an ID to the new meal plan
@@ -100,8 +123,11 @@ class MealPlanner:
 
         # Check date
         try:
-            datetime.strptime(meal_data["date"], "%Y-%m-%d")
+            meal_date = meal_data["date"]
         except (ValueError, TypeError):
+            return False
+
+        if self._parse_date(meal_date) is None:
             return False
 
         # Check that the recipe ID is valid
@@ -133,17 +159,16 @@ class MealPlanner:
 
         # Check that the meal date is valid
         try:
-            week_start = datetime.strptime(
-                self.meal_plans[plan_id]["weekStart"],
-                "%Y-%m-%d"
-            )
-
-            date = datetime.strptime(
-                meal_date,
-                "%Y-%m-%d"
-            )
-
+            week_start_value = self.meal_plans[plan_id]["weekStart"]
         except (ValueError, TypeError):
+            return False
+
+        week_start = self._parse_date(week_start_value)
+        if week_start is None:
+            return False
+
+        date = self._parse_date(meal_date)
+        if date is None:
             return False
 
         # Calculate the end of the week
@@ -172,12 +197,7 @@ class MealPlanner:
             return False
 
         # Convert recipeId to recipe_id for database compatibility
-        meal = {
-            "date": meal_data["date"],
-            "mealSlot": meal_data["mealSlot"],
-            "recipe_id": meal_data["recipeId"],
-            "servings": meal_data["servings"]
-        }
+        meal = self._build_meal_record(meal_data)
 
         # Add the meal to the weekly plan
         self.meal_plans[plan_id]["meals"].append(meal)
@@ -196,10 +216,7 @@ class MealPlanner:
         meals = self.meal_plans[plan_id]["meals"]
 
         # Check that the meal index is valid
-        if (not isinstance(meal_index, int)
-                or isinstance(meal_index, bool)
-                or meal_index < 0
-                or meal_index >= len(meals)):
+        if not self._is_valid_meal_index(meals, meal_index):
             return False
 
         # Remove the selected meal
@@ -222,10 +239,7 @@ class MealPlanner:
         meals = self.meal_plans[plan_id]["meals"]
 
         # Check that the meal index is valid
-        if (not isinstance(meal_index, int)
-                or isinstance(meal_index, bool)
-                or meal_index < 0
-                or meal_index >= len(meals)):
+        if not self._is_valid_meal_index(meals, meal_index):
             return False
 
         # Validate the updated meal information
@@ -239,12 +253,7 @@ class MealPlanner:
             return False
 
         # Convert recipeId to recipe_id
-        updated_meal = {
-            "date": meal_data["date"],
-            "mealSlot": meal_data["mealSlot"],
-            "recipe_id": meal_data["recipeId"],
-            "servings": meal_data["servings"]
-        }
+        updated_meal = self._build_meal_record(meal_data)
 
         # Update the selected meal
         meals[meal_index] = updated_meal
@@ -261,9 +270,7 @@ class MealPlanner:
             return []
 
         # Check that the date is valid
-        try:
-            datetime.strptime(date, "%Y-%m-%d")
-        except (ValueError, TypeError):
+        if self._parse_date(date) is None:
             return []
 
         # Retrieve meals scheduled for the selected date
@@ -286,11 +293,8 @@ class MealPlanner:
             return False
 
         # Check that the new starting date is valid
-        try:
-            start_date = datetime.strptime(
-                week_start, "%Y-%m-%d"
-            )
-        except (ValueError, TypeError):
+        start_date = self._parse_date(week_start)
+        if start_date is None:
             return False
 
         # Calculate the end of the new week
