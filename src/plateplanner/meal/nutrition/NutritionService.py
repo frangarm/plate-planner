@@ -8,7 +8,7 @@ from plateplanner.meal.nutrition.NutritionAnalyzer import (
 DAYS_IN_WEEK = 7
 DAILY_TARGETS = {"calories": 2000, "protein": 50, "carbohydrates": 250, "fat": 70}
 WEEKLY_TOTAL_LABEL = "Weekly total"
- 
+
 class NutritionServiceError(Exception):
     """Base class of the errors this service reports (NS2).
  
@@ -25,7 +25,7 @@ class MealPlanNotFoundError(NutritionServiceError):
 class _StorageLookup:
     """Adapter: lets Nutrition Analyzer read meal plans and recipes from storage.
     Both methods return the stored record, or None when there is none, which
-    is what Nutrition Analyzer expects from its meal planner and recipe lookup.  
+    is what Nutrition Analyzer expects from its meal planner and recipe lookup.
     """
     def __init__(self, storage):
         self._storage = storage
@@ -35,10 +35,9 @@ class _StorageLookup:
  
     def get_recipe(self, recipe_id):
         return self._storage.get_record("recipe", recipe_id)
- 
+
 class NutritionService:
     """Facade: one call analyzes the nutrition of a saved meal plan."""
-
     def __init__(self, storage, analyzer=None):
         """
         storage:  DataStorageManager-like object (get_record by type and ID)
@@ -97,13 +96,33 @@ class NutritionService:
             Any other error, such as a TypeError, shows a programming mistake and
             is not caught.
         """
+        if type(plan_id) is not int or plan_id < 1:
+            raise InvalidAnalysisRequestError("Select a valid meal plan.")
         if period not in VALID_PERIODS:
             raise InvalidAnalysisRequestError("Select a valid analysis period.")
-        result = self._analyzer.calculate_nutrition(plan_id, period)
-        if period == PERIOD_DAILY:
-            return result
  
-        result["targets"] = {name: value * DAYS_IN_WEEK for name, value in DAILY_TARGETS.items()}
+        if self._storage.get_record("meal_plan", plan_id) is None:
+            raise MealPlanNotFoundError("Meal plan not found.")
  
-        result["comparisons"] = {}
+        try:
+            result = dict(self._analyzer.calculate_nutrition(plan_id, period))
+            result["period"] = period
+            
+            if period == PERIOD_DAILY:
+                targets = dict(DAILY_TARGETS)
+                groups = result["totals"]  
+            else:
+                targets = {name: value * DAYS_IN_WEEK for name, value in DAILY_TARGETS.items()}
+                groups = {WEEKLY_TOTAL_LABEL: result["totals"]}
+            result["targets"] = targets
+ 
+            result["comparisons"] = {}
+            if not result["incomplete"]:
+                for label in sorted(groups):
+                    totals = groups[label]
+                    wanted = {name: value for name, value in targets.items() if name in totals}
+                    result["comparisons"][label] = self._analyzer.analyze_nutrition(totals, wanted)
+        except ValueError as error:
+            raise InvalidAnalysisRequestError(str(error)) from error
+ 
         return result
