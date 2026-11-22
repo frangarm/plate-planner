@@ -56,4 +56,4 @@ class RecipeService:
         self.get(recipe_id)
         if not self._storage.delete_record(RECORD_TYPE_RECIPE, recipe_id):
             self.get(recipe_id)
-            raise RecipeInUseError("A meal plan uses this recipe.")
+            raise RecipeInUseError("This recipe is used in a saved meal plan.")
